@@ -31,6 +31,7 @@ public interface BasicTagService {
      */
     public int addFourthBasicTag(BasicModelRuleFormBean bean, UserBean loginUser);
 
+
     /**
      * 新增基础标签(第五级标签)
      *
