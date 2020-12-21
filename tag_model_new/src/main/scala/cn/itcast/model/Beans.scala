@@ -51,7 +51,7 @@ case class MetaData(in_type:String, driver:String, url:String,
        //  抛异常对应的是最为严谨的操作实现
       null
     }
-    if(StringUtils.isEmpty(in_fields)||StringUtils.isEmpty(out_fields)){
+    if(StringUtils.isBlank(in_fields)||StringUtils.isBlank(out_fields)){
       // 抛异常对应的是最为严谨的操作实现
       null
     }

@@ -1,12 +1,10 @@
 package cn.itcast.model.mtag
 
 import java.util.Properties
-
-import cn.itcast.model.{HBaseCataLog1, HBaseColumn1, HBaseTable1, MetaData, Tag}
+import cn.itcast.model.{HBaseCataLog1, HBaseColumn1, HBaseTable1, HbaseMeta, HdfsMeta, MetaData, Tag}
 import com.typesafe.config.ConfigFactory
 import org.apache.spark.sql.execution.datasources.hbase.HBaseTableCatalog
-import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
-
+import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 import scala.collection.mutable
 
 object GenderModel {
@@ -17,6 +15,9 @@ object GenderModel {
     .master("local[6]")
     .getOrCreate()
   val TAG_NAME="性别"
+  val HBASE_NAMESPACE="default"
+  val HBASE_ROWKEY_FIELD="id"
+  val HBASE_COLUMN_DEFAULT_TYPE="string"
 
   def main(args: Array[String]): Unit = {
     //  读取mysql中的4级和5级标签数据
@@ -28,7 +29,8 @@ object GenderModel {
     val (fourtag,fivetags)=readBasicTag()
     // 处理元数据数据，获取的是4级标签的数据执行操作实现。
     val data: MetaData = readMetaData(fourtag.id)
-    println(data)
+    // 读取元数据信息
+    val df: DataFrame = createSource(data)
   }
 
   /**
@@ -36,12 +38,20 @@ object GenderModel {
    * */
   def createSource(metaData: MetaData):DataFrame={
       if(metaData.isHbase()){
+        val meta: HbaseMeta = metaData.toHbaseMeta()
          // 创建catalog对象
          // 处理catalog对象
          // catalog对象转换成为json对象的。
         val hbase1=HBaseTable1("","");
         val rowkey=""
         val columns=mutable.HashMap.empty[String,HBaseColumn1]
+        // 需要根据属性名称获取对应的map数据类型和操作逻辑
+        //  指定rowkey对应的字段信息？
+        columns += HBASE_ROWKEY_FIELD->HBaseColumn1("rowkey",HBASE_ROWKEY_FIELD,HBASE_COLUMN_DEFAULT_TYPE)
+        //  根据源数据中的columns执行操作实现？
+        for(filed<-meta.commonMeta.inFields){
+          columns += filed->HBaseColumn1(meta.columnFamily,filed,HBASE_COLUMN_DEFAULT_TYPE)
+        }
         val hbaseCatalog=HBaseCataLog1(hbase1,rowkey,columns.toMap)
         import org.json4s._
         //  序列化的操作实现
@@ -52,10 +62,22 @@ object GenderModel {
         implicit  val formats=Serialization.formats(NoTypeHints)
         //  执行隐式转换的操作实现和逻辑
         val catalogJson: String = write(hbaseCatalog)
-        val df: DataFrame = spark.read.option(HBaseTableCatalog.tableCatalog, catalogJson).load()
+        val df: DataFrame = spark.read.option(HBaseTableCatalog.tableCatalog, catalogJson)
+          .format("org.apache.spark.sql.execution.datasources.hbase")
+          .load()
         df
       }else if(metaData.isHdfs()){
-        null
+        val meta: HdfsMeta = metaData.toHdfsMeta()
+        //  hdfs的连接操作
+        val df: DataFrame = spark.read.option("seperator", meta.separator).load(meta.inPath)
+        // 输出字段的显示操作
+        import org.apache.spark.sql.functions._
+        /*var columns=new Array[Column](meta.commonMeta.inFields.size)
+        for(field<-meta.commonMeta.inFields){
+          columns += col(field)
+        }
+        df.select(columns)*/
+        null;
         // 读取hdfs处理数据
       }else{
          // 读取源数据的信息执行操作。mysql类型的。所有的关系型的数据库
