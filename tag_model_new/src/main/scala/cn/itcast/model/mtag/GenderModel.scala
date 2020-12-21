@@ -24,13 +24,14 @@ object GenderModel {
     //  结构赋值操作实现？
     val (fourtag,fivetags)=readBasicTag()
     // 处理元数据数据，获取的是4级标签的数据执行操作实现。
-    readMetaData(fourtag.id)
+    val data: MetaData = readMetaData(fourtag.id)
+    println(data)
   }
 
   /**
    * 读取源数据信息
    * */
-  def  readMetaData(fourtagId:String):Unit={
+  def  readMetaData(fourtagId:String):MetaData={
       import  spark.implicits._
       import org.apache.spark.sql.functions._
       //  读取元数据信息。元数据表的配置信息，解析元数据，以对象的方式返回数据信息？
@@ -40,7 +41,7 @@ object GenderModel {
       // 读取元数据信息,将配置解析成为样例类对象的数据执行返回操作实现。
       val head: MetaData = spark.read.jdbc(url, table, new Properties())
         .where(col(matchColumn) === fourtagId).as[MetaData].collect().head
-    print(head)
+      head
   }
   /**
    * 读取basicTag的基础数据。

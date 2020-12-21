@@ -14,7 +14,7 @@ case class  Tag(id:String,name:String,rule:String,pid:String)
  * */
 case class MetaData(in_type:String, driver:String, url:String,
                      username:String, password:String, db_table:String,
-                     in_path:String, separator:String, in_fields:String,
+                     in_path:String, sperator:String, in_fields:String,
                      cond_fields:String, out_fields:String, out_path:String,
                      zk_hosts:String, zk_port:String, hbase_table:String,
                      family:String, select_field_names:String, where_field_names:String,
@@ -91,7 +91,7 @@ case class MetaData(in_type:String, driver:String, url:String,
     //  判断转换操作
     val inFields: Array[String] = in_fields.split(",")
     val outFields: Array[String] = out_fields.split(",")
-    HdfsMeta(CommonMeta(in_type,inFields,outFields),in_path,separator)
+    HdfsMeta(CommonMeta(in_type,inFields,outFields),in_path,sperator)
   }
 }
 
