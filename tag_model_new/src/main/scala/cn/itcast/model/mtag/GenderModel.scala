@@ -2,13 +2,16 @@ package cn.itcast.model.mtag
 
 import java.util.Properties
 
-import cn.itcast.model.{MetaData, Tag}
+import cn.itcast.model.{HBaseCataLog1, HBaseColumn1, HBaseTable1, MetaData, Tag}
 import com.typesafe.config.ConfigFactory
+import org.apache.spark.sql.execution.datasources.hbase.HBaseTableCatalog
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SparkSession}
+
+import scala.collection.mutable
 
 object GenderModel {
 
-  val  config=ConfigFactory.load()
+  val config=ConfigFactory.load()
   val spark=SparkSession.builder()
     .appName("gender mode")
     .master("local[6]")
@@ -26,6 +29,39 @@ object GenderModel {
     // 处理元数据数据，获取的是4级标签的数据执行操作实现。
     val data: MetaData = readMetaData(fourtag.id)
     println(data)
+  }
+
+  /**
+   * 接受源数据对象信息：metaData数据信息
+   * */
+  def createSource(metaData: MetaData):DataFrame={
+      if(metaData.isHbase()){
+         // 创建catalog对象
+         // 处理catalog对象
+         // catalog对象转换成为json对象的。
+        val hbase1=HBaseTable1("","");
+        val rowkey=""
+        val columns=mutable.HashMap.empty[String,HBaseColumn1]
+        val hbaseCatalog=HBaseCataLog1(hbase1,rowkey,columns.toMap)
+        import org.json4s._
+        //  序列化的操作实现
+        import org.json4s.jackson.Serialization
+        //  导入工具方法
+        import org.json4s.jackson.Serialization.write
+        //导入隐式转换操作的方法和实现逻辑。需要格式转换操作和实现的
+        implicit  val formats=Serialization.formats(NoTypeHints)
+        //  执行隐式转换的操作实现和逻辑
+        val catalogJson: String = write(hbaseCatalog)
+        val df: DataFrame = spark.read.option(HBaseTableCatalog.tableCatalog, catalogJson).load()
+        df
+      }else if(metaData.isHdfs()){
+        null
+        // 读取hdfs处理数据
+      }else{
+         // 读取源数据的信息执行操作。mysql类型的。所有的关系型的数据库
+         //  真实的情况下是不会使用mysql执行操作的。
+        null
+      }
   }
 
   /**

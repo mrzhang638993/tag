@@ -114,3 +114,9 @@ case class HbaseMeta(commonMeta: CommonMeta,tableName:String,columnFamily:String
  * hdfs的元数据信息
  * */
 case class HdfsMeta(commonMeta: CommonMeta,inPath:String,separator:String)
+
+
+case class  HBaseCataLog1(table:HBaseTable1,rowkey:String,columns:Map[String,HBaseColumn1])
+case class HBaseTable1(namespace:String,name:String)
+//  type 是scala中的关键字，屏蔽关键字的操作使用`执行屏蔽操作
+case class HBaseColumn1(cf:String,col:String,`type`:String)
