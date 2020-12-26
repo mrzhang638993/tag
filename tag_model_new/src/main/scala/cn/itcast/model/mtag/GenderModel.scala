@@ -42,15 +42,20 @@ object GenderModel {
          // 创建catalog对象
          // 处理catalog对象
          // catalog对象转换成为json对象的。
-        val hbase1=HBaseTable1("","");
-        val rowkey=""
+        val hbase1=HBaseTable1(HBASE_NAMESPACE,meta.tableName);
+        val rowkey=HBASE_ROWKEY_FIELD
         val columns=mutable.HashMap.empty[String,HBaseColumn1]
         // 需要根据属性名称获取对应的map数据类型和操作逻辑
         //  指定rowkey对应的字段信息？
         columns += HBASE_ROWKEY_FIELD->HBaseColumn1("rowkey",HBASE_ROWKEY_FIELD,HBASE_COLUMN_DEFAULT_TYPE)
         //  根据源数据中的columns执行操作实现？
-        for(filed<-meta.commonMeta.inFields){
-          columns += filed->HBaseColumn1(meta.columnFamily,filed,HBASE_COLUMN_DEFAULT_TYPE)
+        // 数据字段不完整，需要的是完整的数据字段操作。
+        if(meta.commonMeta.inFields==null||meta.commonMeta.inFields.size==0){
+           ;
+        }else{
+          for(filed<-meta.commonMeta.inFields){
+            columns += filed->HBaseColumn1(meta.columnFamily,filed,HBASE_COLUMN_DEFAULT_TYPE)
+          }
         }
         val hbaseCatalog=HBaseCataLog1(hbase1,rowkey,columns.toMap)
         import org.json4s._
@@ -72,11 +77,16 @@ object GenderModel {
         val df: DataFrame = spark.read.option("seperator", meta.separator).load(meta.inPath)
         // 输出字段的显示操作
         import org.apache.spark.sql.functions._
-        /*var columns=new Array[Column](meta.commonMeta.inFields.size)
-        for(field<-meta.commonMeta.inFields){
-          columns += col(field)
+        //  处理infields的字段信息？
+        val fields: Array[String] = meta.commonMeta.inFields
+        if(fields!=null&&fields.size>0){
+          spark.read
+            .option("seperator",meta.separator)
+            .load(meta.inPath)
+            .select()
         }
-        df.select(columns)*/
+
+
         null;
         // 读取hdfs处理数据
       }else{

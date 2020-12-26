@@ -49,11 +49,11 @@ case class MetaData(in_type:String, driver:String, url:String,
   def  toHbaseMeta():HbaseMeta={
     if(!isHbase()){
        //  抛异常对应的是最为严谨的操作实现
-      null
+      return null
     }
     if(StringUtils.isBlank(in_fields)||StringUtils.isBlank(out_fields)){
       // 抛异常对应的是最为严谨的操作实现
-      null
+      return null
     }
     val inFields: Array[String] = in_fields.split(",")
     val outFields: Array[String] = out_fields.split(",")
