@@ -1,10 +1,13 @@
 package cn.itcast.model.mtag
 
 import java.util.Properties
+
 import cn.itcast.model.{HBaseCataLog1, HBaseColumn1, HBaseTable1, HbaseMeta, HdfsMeta, MetaData, Tag}
 import com.typesafe.config.ConfigFactory
 import org.apache.spark.sql.execution.datasources.hbase.HBaseTableCatalog
+import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
+
 import scala.collection.mutable
 
 object GenderModel {
@@ -79,16 +82,31 @@ object GenderModel {
         import org.apache.spark.sql.functions._
         //  处理infields的字段信息？
         val fields: Array[String] = meta.commonMeta.inFields
+        var fieldIn: mutable.ArrayBuilder[StructField] = mutable.ArrayBuilder[StructField]
         if(fields!=null&&fields.size>0){
-          spark.read
-            .option("seperator",meta.separator)
-            .load(meta.inPath)
-            .select()
+          // schema的信息
+          for(field<-fields){
+            fieldIn +=StructField(field,StringType)
+          }
         }
-
-
-        null;
-        // 读取hdfs处理数据
+        val structType: StructType = StructType(fieldIn.result())
+        //   获取需要输出的结果信息
+        val outFileds: Array[String] = meta.commonMeta.outFields
+        if(outFileds!=null&&outFileds.size>0){
+          var fieldOut: mutable.ArrayBuilder[Column] = mutable.ArrayBuilder[Column]
+          for(field<-outFileds){
+            // 执行输出字段的操作实现
+            fieldOut+=col(field)
+          }
+          val df: DataFrame = spark.read
+            .option("seperator", meta.separator)
+            .schema(structType)
+            .load(meta.inPath)
+            .select(fieldOut.result(): _*)
+          df
+        }else{
+          null
+        }
       }else{
          // 读取源数据的信息执行操作。mysql类型的。所有的关系型的数据库
          //  真实的情况下是不会使用mysql执行操作的。
