@@ -34,6 +34,7 @@ object GenderModel {
     val data: MetaData = readMetaData(fourtag.id)
     // 读取元数据信息
     val df: DataFrame = createSource(data)
+    df.show()
   }
 
   /**
@@ -82,7 +83,7 @@ object GenderModel {
         import org.apache.spark.sql.functions._
         //  处理infields的字段信息？
         val fields: Array[String] = meta.commonMeta.inFields
-        var fieldIn: mutable.ArrayBuilder[StructField] = mutable.ArrayBuilder[StructField]
+        var fieldIn: mutable.ArrayBuilder[StructField] =mutable.ArrayBuilder.make[StructField]
         if(fields!=null&&fields.size>0){
           // schema的信息
           for(field<-fields){
@@ -93,7 +94,7 @@ object GenderModel {
         //   获取需要输出的结果信息
         val outFileds: Array[String] = meta.commonMeta.outFields
         if(outFileds!=null&&outFileds.size>0){
-          var fieldOut: mutable.ArrayBuilder[Column] = mutable.ArrayBuilder[Column]
+          var fieldOut: mutable.ArrayBuilder[Column] = mutable.ArrayBuilder.make[Column]
           for(field<-outFileds){
             // 执行输出字段的操作实现
             fieldOut+=col(field)
@@ -109,7 +110,7 @@ object GenderModel {
         }
       }else{
          // 读取源数据的信息执行操作。mysql类型的。所有的关系型的数据库
-         //  真实的情况下是不会使用mysql执行操作的。
+         //  真实的情况下是不会使用mysql执行操作的。读取rdbms的操作处理实现
         null
       }
   }
