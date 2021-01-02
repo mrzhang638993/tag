@@ -4,7 +4,7 @@
 <configuration>
   <property>
     <name>hbase.rootdir</name>
-    <value>hdfs://hadoop01:8020/hbase</value>
+    <value>hdfs://hadoop01:8020/hbase1</value>
   </property>
   <property>
     <name>hbase.client.write.buffer</name>
@@ -84,7 +84,7 @@
   </property>
   <property>
     <name>zookeeper.znode.parent</name>
-    <value>/hbase</value>
+    <value>/hbase1</value>
   </property>
   <property>
     <name>zookeeper.znode.rootserver</name>

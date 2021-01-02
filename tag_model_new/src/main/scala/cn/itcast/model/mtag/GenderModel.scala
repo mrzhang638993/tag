@@ -145,6 +145,7 @@ object GenderModel {
       //  使用column对象执行操作
       import spark.implicits._
       //  scala的相等操作.得到4级标签的数据信息
+      //  === 对应的是col对象的方法。
       val fourTag: Tag = source.where('name === TAG_NAME).as[Tag].collect().head
       //  得到多个五级标签的信息？
       val fiveTags: Array[Tag] = source.where('pid === fourTag.id).as[Tag].collect()
