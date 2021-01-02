@@ -35,6 +35,17 @@ object GenderModel {
     // 读取元数据信息
     val df: DataFrame = createSource(data)
     df.show()
+    //  开始计算标签信息。将标签数据和五级标签进行匹配操作。
+  }
+
+  /**
+   * 匹配计算标签进行操作。
+   * df:元数据集
+   * fivetags：用于计算的五级标签的数据
+   * outFields：输出的五级标签的字段信息
+   * */
+  def process(df:DataFrame,fivetags:Array[Tag],outFields:Array[String]): Unit ={
+
   }
 
   /**
