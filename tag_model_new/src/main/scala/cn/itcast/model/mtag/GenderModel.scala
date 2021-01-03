@@ -34,8 +34,10 @@ object GenderModel {
     val data: MetaData = readMetaData(fourtag.id)
     // 读取元数据信息
     val df: DataFrame = createSource(data)
-    df.show()
+    //df.show()
     //  开始计算标签信息。将标签数据和五级标签进行匹配操作。
+    val result: DataFrame = process(df, fivetags, data.toHbaseMeta().commonMeta.outFields)
+    result.show()
   }
 
   /**
@@ -44,8 +46,22 @@ object GenderModel {
    * fivetags：用于计算的五级标签的数据
    * outFields：输出的五级标签的字段信息
    * */
-  def process(df:DataFrame,fivetags:Array[Tag],outFields:Array[String]): Unit ={
-
+  def process(df:DataFrame,fivetags:Array[Tag],outFields:Array[String]):DataFrame ={
+       // 过滤规则，匹配规则。用户的gender为1的话，代表的是男，打上50的标签。gender为2的话，代表的是女，对应的规则是51
+       import  spark.implicits._
+       import org.apache.spark.sql.functions._
+       //根据五级标签进行遍历操作
+       var  conditions:Column=null
+       //  拼接判断条件
+       for(tag<-fivetags){
+         conditions= if(conditions==null)
+            //执行条件判断操作和实现
+            when('gender===tag.rule,tag.id)
+          else
+            conditions.when('gender===tag.rule,tag.id)
+       }
+       conditions=conditions.as("tag_gender")
+       df.select('id,conditions)
   }
 
   /**
