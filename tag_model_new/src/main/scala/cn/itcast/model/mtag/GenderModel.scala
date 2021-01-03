@@ -21,7 +21,7 @@ object GenderModel {
   val HBASE_NAMESPACE="default"
   val HBASE_ROWKEY_FIELD="id"
   val HBASE_COLUMN_DEFAULT_TYPE="string"
-  val HBASE_USER_PROFILE="user_profile"
+  val HBASE_USER_PROFILE="user_profile_new"
 
   def main(args: Array[String]): Unit = {
     //  读取mysql中的4级和5级标签数据
