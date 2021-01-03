@@ -16,6 +16,7 @@ object ShcUtils {
   val HBASE_NAMESPACE="default"
   val HBASE_ROWKEY_FIELD="id"
   val HBASE_COLUMN_DEFAULT_TYPE="string"
+  val HBASE_DEFAULT_COLUMN_FAMILY="default"
 
     /**
      *  hbase的数据读取操作和实现。给定读取参数，读取hbase中的数据信息。
@@ -85,7 +86,25 @@ object ShcUtils {
      catalogJson
    }
 
-    def write(): Unit ={
 
+   /**
+    * 写数据到hbase中进行存储操作。
+    * */
+    def write(tableName:String,outFields:Array[String],result:DataFrame,regionCount:String): Unit ={
+      val table=HBaseTable1(HBASE_NAMESPACE,tableName)
+      val rowKey=HBASE_ROWKEY_FIELD
+      val columns=collection.mutable.HashMap.empty[String,HBaseColumn1]
+      //  rowkey对应的是默认存在的字段的。
+      columns += HBASE_ROWKEY_FIELD->HBaseColumn1("rowkey",HBASE_ROWKEY_FIELD,HBASE_COLUMN_DEFAULT_TYPE)
+      // 处理输出字段的信息.包含输出的时候为多个的字段的信息的
+      for(field<-outFields){
+        columns +=field->HBaseColumn1(HBASE_DEFAULT_COLUMN_FAMILY,field,HBASE_COLUMN_DEFAULT_TYPE)
+      }
+      val  catalog=HBaseCataLog1(table,rowKey,columns.toMap)
+      val catalogJson: String = objectToJson(catalog)
+      result.write.option(HBaseTableCatalog.tableCatalog, catalogJson)
+        .option(HBaseTableCatalog.newTable,regionCount)
+        .format("org.apache.spark.sql.execution.datasources.hbase")
+        .save()
     }
 }

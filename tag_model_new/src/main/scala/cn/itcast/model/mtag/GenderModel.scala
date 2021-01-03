@@ -3,13 +3,10 @@ package cn.itcast.model.mtag
 import java.util.Properties
 
 import cn.itcast.model.utils.ShcUtils
-import cn.itcast.model.{CommonMeta, HBaseCataLog1, HBaseColumn1, HBaseTable1, HbaseMeta, HdfsMeta, MetaData, Tag}
+import cn.itcast.model.{CommonMeta, HbaseMeta, HdfsMeta, MetaData, Tag}
 import com.typesafe.config.ConfigFactory
-import org.apache.spark.sql.execution.datasources.hbase.HBaseTableCatalog
-import org.apache.spark.sql.types.{StringType, StructField, StructType}
 import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 
-import scala.collection.mutable
 
 object GenderModel {
 
@@ -22,7 +19,7 @@ object GenderModel {
   val HBASE_NAMESPACE="default"
   val HBASE_ROWKEY_FIELD="id"
   val HBASE_COLUMN_DEFAULT_TYPE="string"
-  val HBASE_USER_PROFILE="user_profile_new"
+  val HBASE_USER_PROFILE="user_profile_new_1"
 
   def main(args: Array[String]): Unit = {
     //  读取mysql中的4级和5级标签数据
@@ -47,29 +44,7 @@ object GenderModel {
    * 保存数据到hbase中进行操作实现
    * */
   def saveUserProfile(result:DataFrame,commonMeta: CommonMeta): Unit ={
-     //  编写catalog对象
-     val table=HBaseTable1(HBASE_NAMESPACE,HBASE_USER_PROFILE)
-     val rowKey=HBASE_ROWKEY_FIELD
-     val columns=collection.mutable.HashMap.empty[String,HBaseColumn1]
-     //处理得到对应的columns字段信息
-     columns += HBASE_ROWKEY_FIELD->HBaseColumn1("rowkey",HBASE_ROWKEY_FIELD,HBASE_COLUMN_DEFAULT_TYPE)
-     columns +=commonMeta.outFields.head->HBaseColumn1("default",commonMeta.outFields.head,HBASE_COLUMN_DEFAULT_TYPE)
-     val  catalog=HBaseCataLog1(table,rowKey,columns.toMap)
-     import org.json4s._
-     // 序列化的操作实现
-     import org.json4s.jackson.Serialization
-     //  导入工具方法
-     import org.json4s.jackson.Serialization.write
-     //导入隐式转换操作的方法和实现逻辑。需要格式转换操作和实现的
-     implicit  val formats=Serialization.formats(NoTypeHints)
-     //  执行隐式转换的操作实现和逻辑
-     val catalogJson: String = write(catalog)
-     //  开始写入数据到hbase中进行操作
-     result.write.option(HBaseTableCatalog.tableCatalog, catalogJson)
-        //  分区约束信息？
-      .option(HBaseTableCatalog.newTable,"5")
-       .format("org.apache.spark.sql.execution.datasources.hbase")
-      .save()
+      ShcUtils.write(HBASE_USER_PROFILE,commonMeta.outFields,result,"5")
   }
 
   /**
