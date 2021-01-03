@@ -34,12 +34,12 @@ object GenderModel {
     // 处理元数据数据，获取的是4级标签的数据执行操作实现。
     val data: MetaData = readMetaData(fourtag.id)
     // 读取元数据信息
-    val df: DataFrame = createSource(data)
+    val (df,commonMeta) = createSource(data)
     //  开始计算标签信息。将标签数据和五级标签进行匹配操作。
-    val result: DataFrame = process(df, fivetags, data.toHbaseMeta().commonMeta.outFields)
+    val result: DataFrame = process(df, fivetags, commonMeta.outFields)
     // 数据存储到hbase中进行管理和实现操作
     //println(data.toHbaseMeta().commonMeta)
-    saveUserProfile(result,data.toHbaseMeta().commonMeta)
+    saveUserProfile(result,commonMeta)
   }
 
   /**
@@ -98,7 +98,7 @@ object GenderModel {
   /**
    * 接受源数据对象信息：metaData数据信息
    * */
-  def createSource(metaData: MetaData):DataFrame={
+  def createSource(metaData: MetaData):(DataFrame,CommonMeta)={
       if(metaData.isHbase()){
         val meta: HbaseMeta = metaData.toHbaseMeta()
          // 创建catalog对象
@@ -132,7 +132,7 @@ object GenderModel {
         val df: DataFrame = spark.read.option(HBaseTableCatalog.tableCatalog, catalogJson)
           .format("org.apache.spark.sql.execution.datasources.hbase")
           .load()
-        df
+        (df,meta.commonMeta)
       }else if(metaData.isHdfs()){
         val meta: HdfsMeta = metaData.toHdfsMeta()
         //  hdfs的连接操作
@@ -162,7 +162,7 @@ object GenderModel {
             .schema(structType)
             .load(meta.inPath)
             .select(fieldOut.result(): _*)
-          df
+          (df,meta.commonMeta)
         }else{
           null
         }
