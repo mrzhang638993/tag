@@ -2,6 +2,7 @@ package cn.itcast.model.mtag
 
 import java.util.Properties
 
+import cn.itcast.model.utils.ShcUtils
 import cn.itcast.model.{CommonMeta, HBaseCataLog1, HBaseColumn1, HBaseTable1, HbaseMeta, HdfsMeta, MetaData, Tag}
 import com.typesafe.config.ConfigFactory
 import org.apache.spark.sql.execution.datasources.hbase.HBaseTableCatalog
@@ -101,74 +102,13 @@ object GenderModel {
   def createSource(metaData: MetaData):(DataFrame,CommonMeta)={
       if(metaData.isHbase()){
         val meta: HbaseMeta = metaData.toHbaseMeta()
-         // 创建catalog对象
-         // 处理catalog对象
-         // catalog对象转换成为json对象的。
-        val hbase1=HBaseTable1(HBASE_NAMESPACE,meta.tableName);
-        val rowkey=HBASE_ROWKEY_FIELD
-        val columns=mutable.HashMap.empty[String,HBaseColumn1]
-        // 需要根据属性名称获取对应的map数据类型和操作逻辑
-        //  指定rowkey对应的字段信息？
-        columns += HBASE_ROWKEY_FIELD->HBaseColumn1("rowkey",HBASE_ROWKEY_FIELD,HBASE_COLUMN_DEFAULT_TYPE)
-        //  根据源数据中的columns执行操作实现？
-        // 数据字段不完整，需要的是完整的数据字段操作。
-        if(meta.commonMeta.inFields==null||meta.commonMeta.inFields.size==0){
-           ;
-        }else{
-          for(filed<-meta.commonMeta.inFields){
-            columns += filed->HBaseColumn1(meta.columnFamily,filed,HBASE_COLUMN_DEFAULT_TYPE)
-          }
-        }
-        val hbaseCatalog=HBaseCataLog1(hbase1,rowkey,columns.toMap)
-        import org.json4s._
-        //  序列化的操作实现
-        import org.json4s.jackson.Serialization
-        //  导入工具方法
-        import org.json4s.jackson.Serialization.write
-        //导入隐式转换操作的方法和实现逻辑。需要格式转换操作和实现的
-        implicit  val formats=Serialization.formats(NoTypeHints)
-        //  执行隐式转换的操作实现和逻辑
-        val catalogJson: String = write(hbaseCatalog)
-        val df: DataFrame = spark.read.option(HBaseTableCatalog.tableCatalog, catalogJson)
-          .format("org.apache.spark.sql.execution.datasources.hbase")
-          .load()
+        val df: DataFrame = ShcUtils.read(meta.commonMeta.inFields, meta.columnFamily, meta.tableName, spark)
         (df,meta.commonMeta)
       }else if(metaData.isHdfs()){
         val meta: HdfsMeta = metaData.toHdfsMeta()
-        //  hdfs的连接操作
-        val df: DataFrame = spark.read.option("seperator", meta.separator).load(meta.inPath)
-        // 输出字段的显示操作
-        import org.apache.spark.sql.functions._
-        //  处理infields的字段信息？
-        val fields: Array[String] = meta.commonMeta.inFields
-        var fieldIn: mutable.ArrayBuilder[StructField] =mutable.ArrayBuilder.make[StructField]
-        if(fields!=null&&fields.size>0){
-          // schema的信息
-          for(field<-fields){
-            fieldIn +=StructField(field,StringType)
-          }
-        }
-        val structType: StructType = StructType(fieldIn.result())
-        //   获取需要输出的结果信息
-        val outFileds: Array[String] = meta.commonMeta.outFields
-        if(outFileds!=null&&outFileds.size>0){
-          var fieldOut: mutable.ArrayBuilder[Column] = mutable.ArrayBuilder.make[Column]
-          for(field<-outFileds){
-            // 执行输出字段的操作实现
-            fieldOut+=col(field)
-          }
-          val df: DataFrame = spark.read
-            .option("seperator", meta.separator)
-            .schema(structType)
-            .load(meta.inPath)
-            .select(fieldOut.result(): _*)
-          (df,meta.commonMeta)
+        val df: DataFrame = ShcUtils.readHdfs(metaData, spark)
+        (df,meta.commonMeta)
         }else{
-          null
-        }
-      }else{
-         // 读取源数据的信息执行操作。mysql类型的。所有的关系型的数据库
-         //  真实的情况下是不会使用mysql执行操作的。读取rdbms的操作处理实现
         null
       }
   }

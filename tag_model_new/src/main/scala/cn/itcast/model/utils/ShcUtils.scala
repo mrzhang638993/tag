@@ -1,8 +1,9 @@
 package cn.itcast.model.utils
 
-import cn.itcast.model.{HBaseCataLog1, HBaseColumn1, HBaseTable1}
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import cn.itcast.model.{HBaseCataLog1, HBaseColumn1, HBaseTable1, HdfsMeta, MetaData}
+import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 import org.apache.spark.sql.execution.datasources.hbase.HBaseTableCatalog
+import org.apache.spark.sql.types.{StringType, StructField, StructType}
 
 import scala.collection.mutable
 
@@ -36,6 +37,37 @@ object ShcUtils {
         .load()
       df
     }
+
+  /**
+   * 读取hdfs中的文件信息
+   * */
+  def readHdfs(metaData:MetaData,spark:SparkSession): DataFrame = {
+    val meta: HdfsMeta = metaData.toHdfsMeta()
+    import org.apache.spark.sql.functions._
+    val fields: Array[String] = meta.commonMeta.inFields
+    var fieldIn: mutable.ArrayBuilder[StructField] = mutable.ArrayBuilder.make[StructField]
+    if (fields != null && fields.size > 0) {
+      for (field <- fields) {
+        fieldIn += StructField(field, StringType)
+      }
+    }
+    val structType: StructType = StructType(fieldIn.result())
+    val outFileds: Array[String] = meta.commonMeta.outFields
+    if (outFileds != null && outFileds.size > 0) {
+      var fieldOut: mutable.ArrayBuilder[Column] = mutable.ArrayBuilder.make[Column]
+      for (field <- outFileds) {
+        fieldOut += col(field)
+      }
+      val df: DataFrame = spark.read
+        .option("seperator", meta.separator)
+        .schema(structType)
+        .load(meta.inPath)
+        .select(fieldOut.result(): _*)
+      df
+    }else{
+      null
+    }
+  }
 
   /**
    * 对象转化为json的处理方式和方法
