@@ -13,7 +13,6 @@ object GenderModel {
   val config=ConfigFactory.load()
   val spark=SparkSession.builder()
     .appName("gender mode")
-    .master("local[6]")
     .getOrCreate()
   val TAG_NAME="性别"
   val HBASE_NAMESPACE="default"
