@@ -15,6 +15,9 @@ object JobModel  extends  BasicModel{
 
   val  TAG_NAME="职业"
 
+  def main(args: Array[String]): Unit = {
+    startFlow()
+  }
   /**
    * 执行数据判断和逻辑操作执行
    * 对应的是匹配性的类型的数据的计算的。根据匹配数据执行逻辑计算操作

@@ -27,10 +27,11 @@ trait BasicModel {
    * 处理方法和操作逻辑
    * */
   def process(df:DataFrame,fiveTags:Array[Tag],outFields:Array[String]):DataFrame
+
   /**
-   * 对应的jobModel的操作方法喝方式管理
+   * 流程执行的方法
    * */
-  def main(args: Array[String]): Unit = {
+  def startFlow(): Unit ={
     //  访问mysql的数据库，获取4及标签以及5级标签的数据
     //  采用结构赋值操作
     val (fourTag,fiveTags)=readBasicTag(tagName)
@@ -41,7 +42,7 @@ trait BasicModel {
     //  计算标签执行数据操作实现。
     val result: DataFrame = process(df, fiveTags, commonMeta.outFields)
     //  输出结果输出到hbase里面。
-     saveUserProfile(result,commonMeta)
+    saveUserProfile(result,commonMeta)
   }
 
   /**
