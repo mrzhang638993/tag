@@ -27,6 +27,7 @@ object PoliticalModel extends BasicModel{
     var conditions:Column=null
     for(tag<-fiveTags){
       conditions=if(conditions==null){
+        // 指定的是输入字段的信息
         when('politicalface===tag.rule,tag.id)
       }else{
         conditions.when('politicalface===tag.rule,tag.id)
