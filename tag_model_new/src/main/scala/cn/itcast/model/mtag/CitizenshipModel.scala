@@ -25,7 +25,6 @@ object CitizenshipModel extends  BasicModel{
       //  导入spark对应的隐式转换
     import spark.implicits._
     import org.apache.spark.sql.functions._
-    df.select('nationality).show()
       //  执行匹配计算，生成条件列
     var conditions:Column=null
     for(tag<-fiveTags){
