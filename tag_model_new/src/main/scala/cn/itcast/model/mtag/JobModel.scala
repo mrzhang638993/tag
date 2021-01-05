@@ -51,7 +51,7 @@ object JobModel  extends  BasicModel{
       }
     }
     // 列名称字段的对应操作
-    conditions.as(outFields.head)
+    conditions=conditions.as(outFields.head)
     //  执行dataFrame的操作筛选
     df.select('id,conditions)
   }
