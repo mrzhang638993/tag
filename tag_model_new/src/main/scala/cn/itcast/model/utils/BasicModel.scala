@@ -4,12 +4,31 @@ import java.util.Properties
 
 import cn.itcast.model.mtag.GenderModel.HBASE_USER_PROFILE
 import cn.itcast.model.{CommonMeta, HbaseMeta, HdfsMeta, MetaData, Tag}
-import cn.itcast.model.mtag.JobModel.spark
+import cn.itcast.model.mtag.JobModel.{TAG_NAME, getDataSource, getMetaData, process, readBasicTag, saveUserProfile, spark}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.sql.DataFrame
 
+/**
+ * 构建父类的操作信息？
+ * */
 class BasicModel {
 
+  /**
+   * 对应的jobModel的操作方法喝方式管理
+   * */
+  def main(args: Array[String]): Unit = {
+    //  访问mysql的数据库，获取4及标签以及5级标签的数据
+    //  采用结构赋值操作
+    var (fourTag,fiveTags)=readBasicTag(TAG_NAME)
+    //  根据4级标签的数据获取对应的元数据信息。
+    val meta: MetaData = getMetaData(fourTag)
+    //  读取数据，根据规则匹配5级标签,计算得到结果
+    val  (df,commonMeta): (DataFrame,CommonMeta) = getDataSource(meta)
+    //  计算标签执行数据操作实现。
+    val result: DataFrame = process(df, fiveTags, commonMeta.outFields)
+    //  输出结果输出到hbase里面。
+    saveUserProfile(result,commonMeta)
+  }
 
   /**
    * 创建datasource数据集数据，执行数据集操作实现
