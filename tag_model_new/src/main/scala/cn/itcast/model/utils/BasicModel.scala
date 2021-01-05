@@ -37,7 +37,7 @@ class BasicModel {
     val table: String = config.getString("jdbc.meta_data.table")
     val df: DataFrame = spark.read.jdbc(metaUrl, table, new Properties())
     import spark.implicits._
-    df.select('tag_id===fourTag.id).as[MetaData].collect().head
+    df.where('tag_id===fourTag.id).as[MetaData].collect().head
   }
   /**
    * 读取标签的数据。获取到4级以及5级标签的数据
