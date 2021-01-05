@@ -30,7 +30,7 @@ object JobModel  extends  BasicModel{
     //  计算标签执行数据操作实现。
     val result: DataFrame = process(df, fiveTags, commonMeta.outFields)
     //  输出结果输出到hbase里面。
-    result.show()
+    saveUserProfile(result,commonMeta)
   }
 
   /**

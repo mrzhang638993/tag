@@ -2,6 +2,7 @@ package cn.itcast.model.utils
 
 import java.util.Properties
 
+import cn.itcast.model.mtag.GenderModel.HBASE_USER_PROFILE
 import cn.itcast.model.{CommonMeta, HbaseMeta, HdfsMeta, MetaData, Tag}
 import cn.itcast.model.mtag.JobModel.spark
 import com.typesafe.config.{Config, ConfigFactory}
@@ -54,5 +55,12 @@ class BasicModel {
     val fourTag: Tag = df.where('name === tagName).as[Tag].head()
     val fiveTags: Array[Tag] = df.where('pid === fourTag.id).as[Tag].collect()
     (fourTag,fiveTags)
+  }
+
+  /**
+   * 保存数据到hbase中进行操作实现
+   * */
+  def saveUserProfile(result:DataFrame,commonMeta: CommonMeta): Unit ={
+    ShcUtils.writeHbase(HBASE_USER_PROFILE,commonMeta.outFields,result,"5")
   }
 }
