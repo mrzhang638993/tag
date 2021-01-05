@@ -19,7 +19,7 @@ object JobModel  extends  BasicModel{
    * 执行数据判断和逻辑操作执行
    * 对应的是匹配性的类型的数据的计算的。根据匹配数据执行逻辑计算操作
    * */
-  def   process(df:DataFrame,fiveTags:Array[Tag],outFields:Array[String]): DataFrame ={
+  override  def   process(df:DataFrame,fiveTags:Array[Tag],outFields:Array[String]): DataFrame ={
     import  spark.implicits._
     import org.apache.spark.sql.functions._
     // 构建查询条件和操作实现管理体现？
