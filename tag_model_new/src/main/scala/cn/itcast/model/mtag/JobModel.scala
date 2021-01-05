@@ -6,7 +6,7 @@ import cn.itcast.model.{CommonMeta, HbaseMeta, HdfsMeta, MetaData, Tag}
 import cn.itcast.model.mtag.GenderModel.spark
 import cn.itcast.model.utils.{BasicModel, ShcUtils}
 import com.typesafe.config.{Config, ConfigFactory}
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 
 /**
  * 职业标签的书写逻辑操作
@@ -25,25 +25,23 @@ object JobModel  extends  BasicModel{
     //  根据4级标签的数据获取对应的元数据信息。
     val meta: MetaData = getMetaData(fourTag)
     //  读取数据，根据规则匹配5级标签,计算得到结果
-    val source: (DataFrame,CommonMeta) = getDataSource(meta)
+    val  (df,commonMeta): (DataFrame,CommonMeta) = getDataSource(meta)
+    println(fiveTags)
+    //  计算标签执行数据操作实现。
     //  输出结果输出到hbase里面。
   }
 
   /**
-   * 创建datasource数据集数据，执行数据集操作实现
+   * 执行数据判断和逻辑操作执行
+   * 对应的是匹配性的类型的数据的计算的。根据匹配数据执行逻辑计算操作
    * */
-  def getDataSource(metaData:MetaData): (DataFrame, CommonMeta) ={
-     if(metaData.isHdfs()){
-       // 执行hdfs的配置操作和实现
-       val meta: HdfsMeta = metaData.toHdfsMeta()
-       val df: DataFrame = ShcUtils.readHdfs(metaData, spark)
-       (df,meta.commonMeta)
-     }else if(metaData.isHbase()){
-       val meta: HbaseMeta = metaData.toHbaseMeta()
-       val df: DataFrame = ShcUtils.read(meta.commonMeta.inFields, meta.columnFamily, meta.tableName, spark)
-       (df,meta.commonMeta)
-     }else{
-       null
-     }
+  def   process(df:DataFrame,fiveTags:Array[Tag],outFields:Array[String]): Unit ={
+    import  spark.implicits._
+    import org.apache.spark.sql.functions._
+    // 构建查询条件和操作实现管理体现？
+    var conditions:Column=null
+    for(tag<-fiveTags){
+
+    }
   }
 }

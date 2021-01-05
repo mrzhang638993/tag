@@ -90,7 +90,7 @@ object ShcUtils {
    /**
     * 写数据到hbase中进行存储操作。
     * */
-    def write(tableName:String,outFields:Array[String],result:DataFrame,regionCount:String): Unit ={
+    def writeHbase(tableName:String,outFields:Array[String],result:DataFrame,regionCount:String): Unit ={
       val table=HBaseTable1(HBASE_NAMESPACE,tableName)
       val rowKey=HBASE_ROWKEY_FIELD
       val columns=collection.mutable.HashMap.empty[String,HBaseColumn1]

@@ -2,13 +2,31 @@ package cn.itcast.model.utils
 
 import java.util.Properties
 
-import cn.itcast.model.{MetaData, Tag}
+import cn.itcast.model.{CommonMeta, HbaseMeta, HdfsMeta, MetaData, Tag}
 import cn.itcast.model.mtag.JobModel.spark
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.sql.DataFrame
 
 class BasicModel {
 
+
+  /**
+   * 创建datasource数据集数据，执行数据集操作实现
+   * */
+  def getDataSource(metaData:MetaData): (DataFrame, CommonMeta) ={
+    if(metaData.isHdfs()){
+      // 执行hdfs的配置操作和实现
+      val meta: HdfsMeta = metaData.toHdfsMeta()
+      val df: DataFrame = ShcUtils.readHdfs(metaData, spark)
+      (df,meta.commonMeta)
+    }else if(metaData.isHbase()){
+      val meta: HbaseMeta = metaData.toHbaseMeta()
+      val df: DataFrame = ShcUtils.read(meta.commonMeta.inFields, meta.columnFamily, meta.tableName, spark)
+      (df,meta.commonMeta)
+    }else{
+      (null,null)
+    }
+  }
 
   /**
    * 获取数据的元数据信息
