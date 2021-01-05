@@ -6,20 +6,34 @@ import cn.itcast.model.mtag.GenderModel.HBASE_USER_PROFILE
 import cn.itcast.model.{CommonMeta, HbaseMeta, HdfsMeta, MetaData, Tag}
 import cn.itcast.model.mtag.JobModel.{TAG_NAME, getDataSource, getMetaData, process, readBasicTag, saveUserProfile, spark}
 import com.typesafe.config.{Config, ConfigFactory}
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 /**
  * 构建父类的操作信息？
  * */
-class BasicModel {
+trait BasicModel {
 
+  val spark: SparkSession = SparkSession.builder()
+    .appName("职业")
+    .master("local[6]")
+    .getOrCreate()
+
+  /**
+   * 获取对应的标签名称信息
+   * */
+  def tagName():String
+
+  /**
+   * 处理方法和操作逻辑
+   * */
+  def process(df:DataFrame,fiveTags:Array[Tag],outFields:Array[String]):DataFrame
   /**
    * 对应的jobModel的操作方法喝方式管理
    * */
   def main(args: Array[String]): Unit = {
     //  访问mysql的数据库，获取4及标签以及5级标签的数据
     //  采用结构赋值操作
-    var (fourTag,fiveTags)=readBasicTag(TAG_NAME)
+    var (fourTag,fiveTags)=readBasicTag(tagName)
     //  根据4级标签的数据获取对应的元数据信息。
     val meta: MetaData = getMetaData(fourTag)
     //  读取数据，根据规则匹配5级标签,计算得到结果
@@ -27,7 +41,7 @@ class BasicModel {
     //  计算标签执行数据操作实现。
     val result: DataFrame = process(df, fiveTags, commonMeta.outFields)
     //  输出结果输出到hbase里面。
-    saveUserProfile(result,commonMeta)
+     saveUserProfile(result,commonMeta)
   }
 
   /**

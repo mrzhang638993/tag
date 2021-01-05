@@ -14,24 +14,6 @@ import org.apache.spark.sql.{Column, DataFrame, SparkSession}
 object JobModel  extends  BasicModel{
 
   val  TAG_NAME="职业"
-  val spark: SparkSession = SparkSession.builder()
-    .appName("职业")
-    .master("local[6]")
-    .getOrCreate()
-
-  def main(args: Array[String]): Unit = {
-    //  访问mysql的数据库，获取4及标签以及5级标签的数据
-    //  采用结构赋值操作
-    var (fourTag,fiveTags)=readBasicTag(TAG_NAME)
-    //  根据4级标签的数据获取对应的元数据信息。
-    val meta: MetaData = getMetaData(fourTag)
-    //  读取数据，根据规则匹配5级标签,计算得到结果
-    val  (df,commonMeta): (DataFrame,CommonMeta) = getDataSource(meta)
-    //  计算标签执行数据操作实现。
-    val result: DataFrame = process(df, fiveTags, commonMeta.outFields)
-    //  输出结果输出到hbase里面。
-    saveUserProfile(result,commonMeta)
-  }
 
   /**
    * 执行数据判断和逻辑操作执行
@@ -54,5 +36,12 @@ object JobModel  extends  BasicModel{
     conditions=conditions.as(outFields.head)
     //  执行dataFrame的操作筛选
     df.select('id,conditions)
+  }
+
+  /**
+   * 获取对应的标签名称信息
+   **/
+  override def tagName(): String = {
+    TAG_NAME
   }
 }
