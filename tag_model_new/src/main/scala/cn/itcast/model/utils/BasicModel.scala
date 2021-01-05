@@ -33,7 +33,7 @@ trait BasicModel {
   def main(args: Array[String]): Unit = {
     //  访问mysql的数据库，获取4及标签以及5级标签的数据
     //  采用结构赋值操作
-    var (fourTag,fiveTags)=readBasicTag(tagName)
+    val (fourTag,fiveTags)=readBasicTag(tagName)
     //  根据4级标签的数据获取对应的元数据信息。
     val meta: MetaData = getMetaData(fourTag)
     //  读取数据，根据规则匹配5级标签,计算得到结果
