@@ -44,7 +44,7 @@ object GenderModel {
    * 保存数据到hbase中进行操作实现
    * */
   def saveUserProfile(result:DataFrame,commonMeta: CommonMeta): Unit ={
-      ShcUtils.write(HBASE_USER_PROFILE,commonMeta.outFields,result,"5")
+      ShcUtils.writeHbase(HBASE_USER_PROFILE,commonMeta.outFields,result,"5")
   }
 
   /**
