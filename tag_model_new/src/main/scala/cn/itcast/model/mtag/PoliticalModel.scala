@@ -5,11 +5,15 @@ import cn.itcast.model.utils.BasicModel
 import org.apache.spark.sql.{Column, DataFrame}
 
 object PoliticalModel extends BasicModel{
+
+  def main(args: Array[String]): Unit = {
+    startFlow()
+  }
   /**
    * 获取对应的标签名称信息
    **/
   override def tagName(): String = {
-    ""
+    "政治面貌"
   }
 
   /**
