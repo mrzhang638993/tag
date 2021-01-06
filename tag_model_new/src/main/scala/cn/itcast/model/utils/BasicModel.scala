@@ -15,6 +15,7 @@ trait BasicModel {
 
   val spark: SparkSession = SparkSession.builder()
     .appName("职业")
+    .master("local[6]")
     .getOrCreate()
 
   /**
