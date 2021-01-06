@@ -20,6 +20,8 @@ object CitizenshipModel extends  BasicModel{
 
   /**
    * 处理方法和操作逻辑
+   * 数据运行存在问题。对应的会出现如下的问题和信息？
+   * |931|          null|
    **/
   override def process(df: DataFrame, fiveTags: Array[Tag], outFields: Array[String]): DataFrame = {
       //  导入spark对应的隐式转换
