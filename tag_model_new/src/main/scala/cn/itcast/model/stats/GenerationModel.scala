@@ -32,7 +32,6 @@ object GenerationModel  extends  BasicModel{
     //  根据标签对应的年龄段的数据执行计算操作。19500101-19591231之间对应的是50年的年龄段的用户的。
     // 将conditions作为列字段进行处理操作和实现管理。
     var conditions:Column=null;
-    df.show(10)
     for(tag<-fiveTags){
        //  获取开始时间和结束时间的时间信息？
        val start: String = tag.rule.split("-")(0)
