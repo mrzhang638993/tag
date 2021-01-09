@@ -27,7 +27,7 @@ object RecentPaymentCodeModel  extends  BasicModel{
     import org.apache.spark.sql.functions._
       //  找到最近的一次的支付方式.获取时间信息
     val dfClean: Dataset[Row] = df.filter($"paymentcode".isNotNull && length(trim($"paymentcode")) > 0 && $"paytime".=!=("0"))
-      .filter($"paymentcode".isin(List("alipay",
+      .filter($"paymentcode".isInCollection(List("alipay",
       "cod","chinapay")))
     val destValue: Dataset[Row] = dfClean.select('memberid as "id",
         row_number() over Window.partitionBy('memberid).orderBy('paytime.desc) as "rn",
