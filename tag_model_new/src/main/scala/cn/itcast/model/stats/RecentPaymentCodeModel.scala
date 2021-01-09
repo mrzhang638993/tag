@@ -26,8 +26,7 @@ object RecentPaymentCodeModel  extends  BasicModel{
     import spark.implicits._
     import org.apache.spark.sql.functions._
       //  找到最近的一次的支付方式.获取时间信息
-    val dfClean: Dataset[Row] = df.filter($"paymentcode".isNotNull && length(trim($"paymentcode")) > 0)
-    dfClean.show()
+    val dfClean: Dataset[Row] = df.filter($"paymentcode".isNotNull && length(trim($"paymentcode")) > 0 && $"paytime".=!=("0"))
     val destValue: Dataset[Row] = dfClean.select('memberid as "id",
         row_number() over Window.partitionBy('memberid).orderBy('paytime.desc) as "rn",
         'paymentcode as "paymentcode"
@@ -43,8 +42,7 @@ object RecentPaymentCodeModel  extends  BasicModel{
     }
     conditions=conditions.as(outFields.head)
     val frame: DataFrame = destValue.select('id, conditions)
-    //frame.show()
-    //frame
-    null
+    frame.show()
+    frame
   }
 }
