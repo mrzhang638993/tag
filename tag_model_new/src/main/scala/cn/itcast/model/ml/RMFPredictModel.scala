@@ -40,7 +40,9 @@ object RMFPredictModel  extends  BasicModel{
     //  得到序号的操作，对应的可以得到
     val centerIndex: DataFrame = sortedCenters.indices.map(i => (sortedCenters(i)._1, i + 1)).toDF("predict", "index")
     //  join的时候一个表的数据特别的小的话，会自动的进行join的map端的优化操作的。
-    prodicted.join(centerIndex,prodicted.col("predict")===centerIndex.col("predict"))
-      .select(prodicted.col("id"),centerIndex.col("index") as outFields.head)
+    val frame1: DataFrame = prodicted.join(centerIndex, prodicted.col("predict") === centerIndex.col("predict"))
+      .select(prodicted.col("id"), centerIndex.col("index") as outFields.head)
+    frame1.show()
+    frame1
   }
 }
