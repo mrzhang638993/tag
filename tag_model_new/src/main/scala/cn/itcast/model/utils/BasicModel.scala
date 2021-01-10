@@ -74,6 +74,7 @@ trait BasicModel {
     val table: String = config.getString("jdbc.meta_data.table")
     val df: DataFrame = spark.read.jdbc(metaUrl, table, new Properties())
     import spark.implicits._
+    df.sort('tag_id.desc).show()
     df.where('tag_id===fourTag.id).as[MetaData].collect().head
   }
   /**
