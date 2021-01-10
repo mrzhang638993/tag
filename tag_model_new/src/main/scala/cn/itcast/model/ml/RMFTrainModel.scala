@@ -43,7 +43,7 @@ object RMFTrainModel extends  BasicModel{
      import  spark.implicits._
      import  org.apache.spark.sql.functions._
      //  求解R指标的数据信息.求解最后一次消费距离今天的时间。
-    val rCol=(datediff(date_sub(current_timestamp(),503),from_unixtime(max('finishTime)))) as "r"
+    val rCol=(datediff(date_sub(current_timestamp(),503),from_unixtime(max('finishtime)))) as "r"
     //  消费频次
     val fCol=count('ordersn ) as "f"
     // 计算得到消费的总金额
