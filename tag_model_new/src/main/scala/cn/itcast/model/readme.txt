@@ -156,6 +156,20 @@ val df=vectorDf.select('features,'SalePrice.cast(DoubleType))
 //  df  训练模型，通过算法学习规律，生成model
 //  通过model 使用transform  进行模型的预测操作
 regressor.fit(df).transform(df).select ('SalePrice,'prediction).show
-9.
+
+
+挖掘性的标签：RMF很多的公司都会执行的操作。需要进行关注和理解操作实现
+RFM：通过三个维度评价评价用户对于我们的价值度的高低。
+1.最后一次的消费的时间距离今天的时间:R
+2.购买的评率：F
+3.消费的金额：M
+描述的事实：RMF维度可以组合成为多个维度的指标的。
+
+1.首先计算RMF的数值，然后执行操作
+
+尽量少的进行模型的训练操作，尽可能多的时间执行模型的预测操作。模型训练的操作可以一周进行一次，一个月进行一次，或者是一年进行一次。
+
+
+
 
 
