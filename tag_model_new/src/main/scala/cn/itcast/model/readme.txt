@@ -4,3 +4,91 @@
 数据集的数据太杂乱了，导致很多的错误出现，存在无法运行的情况的。
 topN的方式适合处理组内的第n个元素的。
 所有的数据的finishTime对应的都是空的数据信息的。
+
+
+
+步骤：
+1.处理数据，得到数据集；
+2.使用学习型的算法，从数据中找到数据的规律。
+
+机器学习处理的问题：1.回归；2.分类。
+规律对应的称之为模型。
+机器学习：
+1.监督学习：监督找到数据的规律。数据规律已经存在，需要算法找出规律进行验证操作；使用标签验证学习的过程。
+2.无监督学习：zeppelin
+
+
+spark 可视化的工具操作实现：
+机器学习：机器学习的算法对应的是归纳法，学习数据找到数据的规律。
+学习型的算法：
+
+
+机器学习是一个非常难的问题，机器学习是一个学术问题。不是一个工程问题。对数学的基础要求特别的高。
+机器学习难以入门。不是一个很难以入门的学科的。
+机器学习掌握比较深的人，不是工程是的。而是数据科学家。不要将重点放在方法和理论研究上。不要将尽力放在理论研究上执行的。
+更重要的是了解数据如何的处理。如何进行特征工程。数据决定了模型的高度，算法只是让你逼近这个高度。
+专业的机器学习而言，80%的时间是处理数据集的，20%的时间是选择算法的。所以，学习的核心应该放在数据的处理上的。
+
+
+Linux的操作：
+软件的安装目录，一般的安装在usr目录或者是opt目录的。
+
+zeppelin：多用途的比较本工具。
+1.数据分析的协作功能；
+2.作为bi使用：可视化分析。
+3.机器学习中的数据探索。
+
+
+
+1.学习特征的规律，使用算法生成模型；
+2.针对新的生成的模型，输入数据，产生预测结果。
+很难通过算法和特征准确的预测哪一个算法的效果更好的，需要进行多次测试的。
+大部分的机器学习的时候不是在选择哪一个算法更加的优秀的，大部分的时间更多的是在处理数据的
+数据的优劣决定了模型的高度的。算法只是将这个高度不断的推进到理论值的。
+大数据开发的关键的问题是数据的处理操作的。
+
+
+ETL常见的操作：
+1.空置的处理：null，NAN(数值型的数据)，"NA"(最为常见的),异常值(容易让模型走向变异),
+
+/**
+*处理数据循环排序的问题和对应的操作逻辑实现
+*/
+%spark
+import org.apache.spark.sql.functions._
+for(c<-source.columns){
+    source.groupBy(col(c)).agg(first(col(c)) as c,countDistinct(col(c)) as s"${c}_count").show
+}
+
+
+数据空值的分析步骤：
+1.使用zeppelin判断判断空值的信息
+for(c<-source.columns){
+    source.groupBy(col(c)).agg(first(col(c)) as c,countDistinct(col(c)) as s"${c}_count").show
+}
+查询每一列的数据的空值的范围和对应的信息。
+2.空值比例不高的话，可以使用na进行数据的填充操作和实现管理的。空值比例特别高的话，对应的只是需要select选择的时候抛弃掉对应的列数据即可。
+3.特征的处理：将特征转化为数值，计算机就可以进行识别操作的。
+import org.apache.spark.sql.functions._
+import spark.implicits._
+def  to_level(q:String):Int={
+    q  match{
+        case "Ex"=>1
+        case "Gd"=>2
+        case "TA"=>3
+        case "Fa"=>4
+        case _=>0
+    }
+}
+val udf_to_level=udf(to_level _)
+source.select(udf_to_level('ExterQual)).show
+4.向数据集中增加新的数据列信息.
+import org.apache.spark.sql.functions._
+import spark.implicits._
+source.select(('TotalBsmtSF+col("1stFlrSF")+col("2ndFlrSF")) as "TotalSF").show
+source.withColumn('')
+5.将字符串类型的特征转化为数值型的特征信息？
+编码方式：OneHot编码方式
+将一列转化成为多个列，将单个的数值转化为一个向量。更加符合科学的计算以及数学的计算
+
+
