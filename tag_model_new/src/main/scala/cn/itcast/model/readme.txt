@@ -90,5 +90,72 @@ source.withColumn('')
 5.将字符串类型的特征转化为数值型的特征信息？
 编码方式：OneHot编码方式
 将一列转化成为多个列，将单个的数值转化为一个向量。更加符合科学的计算以及数学的计算
+%spark
+import org.apache.spark.sql.functions._
+import spark.implicits._
+import org.apache.spark.sql.DataFrame
+import org.apache.spark.ml.feature.StringIndexer
+val cols = Array(
+  "BsmtFinType1", "MasVnrType", "Foundation",
+  "HouseStyle", "Functional", "BsmtExposure",
+  "GarageFinish", "Street", "ExterQual",
+  "PavedDrive", "ExterCond", "KitchenQual",
+  "HeatingQC", "BsmtQual", "FireplaceQu",
+  "GarageQual", "PoolQC"
+)
+var indexDf:DataFrame=null
+for(co<-cols){
+    val indexer=new StringIndexer().setInputCol(co).setOutputCol(s"${co}_indexer")
+    if(indexDf==null){
+       indexDf= indexer.fit(source).transform(source)
+    }else{
+        indexDf=indexer.fit(indexDf).transform(indexDf)
+    }
+}
+val indexCols=cols.map(col=>s"${col}_indexer").map(c=>col(c))
+indexDf.select(indexCols:_*).show
+6.Onehot编码操作实现
+%spark
+import org.apache.spark.sql.functions._
+import spark.implicits._
+import org.apache.spark.ml.feature.OneHotEncoderEstimator
+import org.apache.spark.sql.DataFrame
+val oneHotEncoder=new OneHotEncoderEstimator()
+     .setInputCols(cols.map(col=>s"${col}_indexer"))
+     .setOutputCols(cols.map(col=>s"${col}_onehot"))
+// fit  负责找到规律  transform负责转换操作
+val oneHotDf=oneHotEncoder.fit(indexDf).transform(indexDf)
+oneHotDf.select((cols.map(col=>s"${col}_onehot").map(c=>col(c))):_*).show
+7. 将onehot的编码处理成为VectorAssembler的向量信息。
+%spark
+//  对于很多的机器学习而言，输入的数据只能是一列数据的，不能是多列数据。所以,需要将多列数据进行合并操作实现
+import org.apache.spark.ml.feature.VectorAssembler
+import org.apache.spark.sql.functions._
+import spark.implicits._
+val vector=new VectorAssembler()
+      .setInputCols(cols.map(col=>s"${col}_onehot"))
+      .setOutputCol("features")
+//  执行向量转换操作
+val vectorDf=vector.transform(oneHotDf)
+vectorDf.select('features).show
+8.使用决策树进行预测操作
+%spark
+//  选择算法： 对应的选择的是决策树信息
+//  创建回归算法工具，regressor
+//  label 列必须是数值列信息
+import org.apache.spark.ml.regression.RandomForestRegressor
+import org.apache.spark.sql.types.DoubleType
+//  随机森林，底层对应的也是随机数信息。
+val regressor=new RandomForestRegressor()
+  .setFeaturesCol("features")
+  .setLabelCol("SalePrice")
+  .setPredictionCol("prediction")
+  .setMaxDepth(5)
+  .setImpurity("variance")
+val df=vectorDf.select('features,'SalePrice.cast(DoubleType))
+//  df  训练模型，通过算法学习规律，生成model
+//  通过model 使用transform  进行模型的预测操作
+regressor.fit(df).transform(df).select ('SalePrice,'prediction).show
+9.
 
 
