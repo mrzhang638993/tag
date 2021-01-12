@@ -65,7 +65,11 @@ object PSMModel  extends  BasicModel{
      // 优惠金额占比
      val discountAmountPercent=('totalDiscount/'totalReceiveAmount) as "discountAmountPercent"
      val stage3: DataFrame = stage2.select('id, avgDiscountAmount, avgReceivableAmount, discountPercent, avgDiscountPercent, discountAmountPercent)
-     stage3.show()
-     null
+     //  计算psmScore指标
+     // PSM Score = 优惠订单占比 + (平均优惠金额 / 平均每单应收) + 优惠金额占比
+     val psmScore=('avgDiscountPercent+'avgDiscountAmount/'avgReceivableAmount+'discountAmountPercent) as "psmScore"
+    val stage4: DataFrame = stage3.select('id, psmScore)
+    stage4.show()
+    null
   }
 }
