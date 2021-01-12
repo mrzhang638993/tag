@@ -107,7 +107,7 @@ object PSMModel  extends  BasicModel{
     //  执行数据的训练操作，得到model对象
     val model: KMeansModel = kmeans.fit(vectorAssembler)
     // 排序操作实现？怎么排序操作实现的？
-    // 通过聚类操作实现分类操作实现？
+    // 通过聚类操作实现分类操作实现。聚类将多个散点数据归类起来进行操作实现管理。
     null
   }
 }
