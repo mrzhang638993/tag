@@ -2,8 +2,12 @@ package cn.itcast.model.ml
 
 import cn.itcast.model.Tag
 import cn.itcast.model.utils.BasicModel
+import org.apache.spark.ml.clustering.{KMeans, KMeansModel}
+import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.sql.{Column, DataFrame}
 import org.apache.spark.sql.types.DoubleType
+
+import scala.collection.immutable
 
 /**
  * 对应的也是需要执行聚类操作实现的？
@@ -69,7 +73,41 @@ object PSMModel  extends  BasicModel{
      // PSM Score = 优惠订单占比 + (平均优惠金额 / 平均每单应收) + 优惠金额占比
      val psmScore=('avgDiscountPercent+'avgDiscountAmount/'avgReceivableAmount+'discountAmountPercent) as "psmScore"
     val stage4: DataFrame = stage3.select('id, psmScore)
-    stage4.show()
+    // 肘部法则，确定k的值。
+    val  vectorAssembler=new VectorAssembler()
+      .setInputCols(Array("psmScore"))
+      .setOutputCol("features")
+      .setHandleInvalid("skip")
+      .transform(stage4)
+    //  确定k，需要对k执行操作处理实现？多次计算k，获取得到损失最小的k执行操作的
+    //val kArr=Array(2,3,4,5,6,7,8)
+    //  得到不同的key下面的cost操作
+    /*val keyCosts: Array[(Int, Double)] = kArr.map(k => {
+      val kmeans = new KMeans()
+        .setK(k)
+        .setMaxIter(10)
+        .setPredictionCol("predict")
+        .setFeaturesCol("features")
+      //  执行数据的训练操作，得到model对象
+      val model: KMeansModel = kmeans.fit(vectorAssembler)
+      //  执行损失的预测。确定肘部预测操作
+      //  得到第一次的损失数值
+      val cost: Double = model.computeCost(vectorAssembler)
+      (k, cost)
+    })*/
+    // 绘制图形，发现k出于4-7之间是处于肘部的。是合理的。
+    // 结合业务逻辑，对应的取值，k是可以获取到5的数据的。
+    //  使用k=5执行数据计算操作。
+    //  排序操作的代码输出。需要结合标签对数据进行输出操作实现。
+    val kmeans = new KMeans()
+      .setK(5)
+      .setMaxIter(10)
+      .setPredictionCol("predict")
+      .setFeaturesCol("features")
+    //  执行数据的训练操作，得到model对象
+    val model: KMeansModel = kmeans.fit(vectorAssembler)
+    // 排序操作实现？怎么排序操作实现的？
+    // 通过聚类操作实现分类操作实现？
     null
   }
 }
