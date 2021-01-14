@@ -108,6 +108,7 @@ object PSMModel  extends  BasicModel{
     val model: KMeansModel = kmeans.fit(vectorAssembler)
     // 排序操作实现？怎么排序操作实现的？
     // 通过聚类操作实现分类操作实现。聚类将多个散点数据归类起来进行操作实现管理。
+    // 对应的也是需要进行类的映射操作的。需要将对应的范围处理成为相关的范围数据信息的。
     null
   }
 }
