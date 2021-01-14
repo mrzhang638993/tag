@@ -40,8 +40,8 @@ object RMFPredictModel  extends  BasicModel{
     //  得到序号的操作，对应的可以得到
     val centerIndex: DataFrame = sortedCenters.indices.map(i => (sortedCenters(i)._1, i + 1)).toDF("predict", "index")
     // 下面预测的数据是错误的，需要重新编写代码进行预测操作实现？
-    // 步骤一：针对于fivetags的数据需要和centerIndex进行关联，得到关联关系管理
-    // val ruleTag: DataFrame = centerDf.join(five, "rule")
+    // 步骤一：针对于fivetags的数据需要和centerIndex进行关联，得到关联关系管理.需要处理和转换一下rule以及对应的关联关系
+    // val ruleTag: DataFrame = centerIndex.join(five, "rule")
     // val perdict: DataFrame = ruleTag.select(predictStr, "tagsId")  得到预测值和tagsId之间的关联关系？
     // 下面得到预测值和映射关系之间的关联map数据信息？
     //val perMap = perdict.map(t => {
