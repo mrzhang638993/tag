@@ -149,5 +149,7 @@ object PSMModel  extends  BasicModel{
     val dest: DataFrame = prodicted.select('id, rule_UDF('predict).as("tag_id"))
     // 下面需要将
    dest
+    // 对应的也是需要进行类的映射操作的。需要将对应的范围处理成为相关的范围数据信息的。
+    null
   }
 }
