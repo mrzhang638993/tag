@@ -56,14 +56,15 @@ object RMFPredictModel  extends  BasicModel{
     //  var tag=perMap(perdict)
     // tag
     //})
-    val new_Tag = prodicted.select('memberId as "userId", predictUdf('predict) as "tagsId")
+    //val new_Tag = prodicted.select('memberId as "userId", predictUdf('predict) as "tagsId")
     //  join的时候一个表的数据特别的小的话，会自动的进行join的map端的优化操作的。
-    val frame1: DataFrame = prodicted.join(centerIndex, prodicted.col("predict") === centerIndex.col("predict"))
-      .select(prodicted.col("id"), centerIndex.col("index") as outFields.head)
-    frame1
+    //val frame1: DataFrame = prodicted.join(centerIndex, prodicted.col("predict") === centerIndex.col("predict"))
+    //  .select(prodicted.col("id"), centerIndex.col("index") as outFields.head)
+    //frame1
     //val frame1: DataFrame = prodicted.join(centerIndex, prodicted.col("predict") === centerIndex.col("predict"))
      // .select(prodicted.col("id"), centerIndex.col("index") as outFields.head)
     //frame1.show()
     //frame1
+    null
   }
 }
