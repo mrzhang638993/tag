@@ -90,6 +90,7 @@ object ShoppingGenderModel extends  MultiSourceModel{
     //  男生的数据对应的是0，女生数据对应的是1.计算总数信息，如果1对应的占比超过总数的80%，那么这个对应的gender是女生的，否则的话，对应的是男生的。
     // predict.groupBy('memberid)
     //println(d)
+    // 预测完成之后，对应的需要根据预测的数据判断对应的购物性别的比例数据的。
     null;
   }
 }
