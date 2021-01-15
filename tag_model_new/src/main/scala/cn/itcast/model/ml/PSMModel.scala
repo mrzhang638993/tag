@@ -4,7 +4,7 @@ import cn.itcast.model.Tag
 import cn.itcast.model.utils.BasicModel
 import org.apache.spark.ml.clustering.{KMeans, KMeansModel}
 import org.apache.spark.ml.feature.VectorAssembler
-import org.apache.spark.sql.{Column, DataFrame}
+import org.apache.spark.sql.{Column, DataFrame, Dataset, Row}
 import org.apache.spark.sql.types.DoubleType
 
 import scala.collection.immutable
@@ -106,8 +106,48 @@ object PSMModel  extends  BasicModel{
       .setFeaturesCol("features")
     //  执行数据的训练操作，得到model对象
     val model: KMeansModel = kmeans.fit(vectorAssembler)
-    // 排序操作实现？怎么排序操作实现的？
+    //  得到模型的预测信息
+    val prodicted: DataFrame = model.transform(vectorAssembler)
+    //  数据预测之后，得到
+    //怎么获取得tagid的信息内容？features以及predict。需要将标签的规则映射和对应的index信息关联起来的。
+    val tuples: Array[(String, Int)] = fiveTags.map(it => it.rule match {
+      case ">=1" => (it.id, 5)
+      case "0.4~1" => (it.id, 4)
+      case "0.1-0.3" => (it.id, 3)
+      case "0" => (it.id, 2)
+      case "<0" => (it.id, 1)
+    })
+    val tagValue: DataFrame=tuples.toSeq.toDF("tag_id", "rule")
+     //  只有标签ID，rule信息，mmeberid，psmscore信息？
     // 通过聚类操作实现分类操作实现。聚类将多个散点数据归类起来进行操作实现管理。
-    null
+    //  最终输出id,tag_id的数据信息？
+    val sortedCenters: immutable.IndexedSeq[(Int, Double)] = model.clusterCenters.indices.map(i => (i, model.clusterCenters(i).toArray.sum)).sortBy(_._2).reverse
+    //  得到序号的操作，对应的可以得到
+    // +-------+----+
+    //|predict|rule|
+    //+-------+----+
+    //|      3|   1|
+    //|      1|   2|
+    //|      4|   3|
+    //|      2|   4|
+    //|      0|   5|
+    //+-------+----+
+    val centerIndex: DataFrame = sortedCenters.indices.map(i => (sortedCenters(i)._1, i + 1)).toDF("predict", "rule")
+    //  得到对应的数据信息的,得到的是预测值和tag_id之间的映射关系的
+    val frame: DataFrame = centerIndex.join(tagValue, tagValue.col("rule") === centerIndex.col("rule"))
+      .select(tagValue.col("tag_id"), centerIndex.col("predict"))
+    val ruleMap: Map[String, String] = frame.map(t => {
+      val predict = t.getAs("predict").toString
+      val tagsId = t.getAs("tag_id").toString
+      (predict, tagsId)
+    }).collect().toMap
+    var rule_UDF=udf((pre:String)=>{
+      // 根据key得到对应的数值信息？
+      val tag = ruleMap(pre)
+      tag
+    })
+    val dest: DataFrame = prodicted.select('id, rule_UDF('predict).as("tag_id"))
+    // 下面需要将
+   dest
   }
 }

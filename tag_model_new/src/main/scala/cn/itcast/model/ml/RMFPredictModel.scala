@@ -27,6 +27,7 @@ object RMFPredictModel  extends  BasicModel{
    * 处理方法和操作逻辑
    **/
   override def process(df: DataFrame, fiveTags: Array[Tag], outFields: Array[String]): DataFrame = {
+    // 判断逻辑存在问题，对应的fivetag的数据怎么使用的？需要进行关注和理解操作实现？
     import spark.implicits._
     // 获取rmf数据
     val frame: DataFrame = RMFTrainModel.rmfScore(df)
@@ -35,6 +36,7 @@ object RMFPredictModel  extends  BasicModel{
     // 对结果进行排序操作。
     val model: KMeansModel = KMeansModel.load(RMFTrainModel.MODEL_PATH)
     //   获取得到预测结果
+    //  得到的是模型的值和模型的值进行计算的操作实现，理论上数据存在问题和对应的代码存在问题的？不符合逻辑相关的特性的？
     val prodicted: DataFrame = model.transform(result)
     val sortedCenters: immutable.IndexedSeq[(Int, Double)] = model.clusterCenters.indices.map(i => (i, model.clusterCenters(i).toArray.sum)).sortBy(_._2).reverse
     //  得到序号的操作，对应的可以得到
@@ -42,7 +44,6 @@ object RMFPredictModel  extends  BasicModel{
     //  join的时候一个表的数据特别的小的话，会自动的进行join的map端的优化操作的。
     val frame1: DataFrame = prodicted.join(centerIndex, prodicted.col("predict") === centerIndex.col("predict"))
       .select(prodicted.col("id"), centerIndex.col("index") as outFields.head)
-    frame1.show()
     frame1
   }
 }
