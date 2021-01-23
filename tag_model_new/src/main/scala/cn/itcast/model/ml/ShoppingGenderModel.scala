@@ -75,9 +75,9 @@ object ShoppingGenderModel extends  MultiSourceModel{
     // 将数据集转化为2个部分的数据的
     //  运用解构赋值操作实现
     val Array(trainDf,testDf): Array[Dataset[Row]] = result.randomSplit(Array(0.8, 0.2))
-    // 训练和预测操作
+    // 训练和预测操作.得到模型训练的操作结果信息？
     val model: PipelineModel = pipeline.fit(trainDf)
-    //  执行预测操作
+    //  执行预测操作。根据模型的训练结果进行预测操作
     val predict: DataFrame = model.transform(testDf)
     // 计算标签列和预测列的数据的精确度的数据信息？
    /* val evaluator: MulticlassClassificationEvaluator = new MulticlassClassificationEvaluator()

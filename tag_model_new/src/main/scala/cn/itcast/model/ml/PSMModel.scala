@@ -99,6 +99,7 @@ object PSMModel  extends  BasicModel{
     // 结合业务逻辑，对应的取值，k是可以获取到5的数据的。
     //  使用k=5执行数据计算操作。
     //  排序操作的代码输出。需要结合标签对数据进行输出操作实现。
+    //  需要将数据处理一下得到对应的1,2,3,4,5的数据信息的？
     val kmeans = new KMeans()
       .setK(5)
       .setMaxIter(10)
@@ -108,30 +109,10 @@ object PSMModel  extends  BasicModel{
     val model: KMeansModel = kmeans.fit(vectorAssembler)
     //  得到模型的预测信息
     val prodicted: DataFrame = model.transform(vectorAssembler)
-    //  数据预测之后，得到
-    //怎么获取得tagid的信息内容？features以及predict。需要将标签的规则映射和对应的index信息关联起来的。
-    val tuples: Array[(String, Int)] = fiveTags.map(it => it.rule match {
-      case ">=1" => (it.id, 5)
-      case "0.4~1" => (it.id, 4)
-      case "0.1-0.3" => (it.id, 3)
-      case "0" => (it.id, 2)
-      case "<0" => (it.id, 1)
-    })
-    val tagValue: DataFrame=tuples.toSeq.toDF("tag_id", "rule")
-     //  只有标签ID，rule信息，mmeberid，psmscore信息？
-    // 通过聚类操作实现分类操作实现。聚类将多个散点数据归类起来进行操作实现管理。
     //  最终输出id,tag_id的数据信息？
     val sortedCenters: immutable.IndexedSeq[(Int, Double)] = model.clusterCenters.indices.map(i => (i, model.clusterCenters(i).toArray.sum)).sortBy(_._2).reverse
     //  得到序号的操作，对应的可以得到
-    // +-------+----+
-    //|predict|rule|
-    //+-------+----+
-    //|      3|   1|
-    //|      1|   2|
-    //|      4|   3|
-    //|      2|   4|
-    //|      0|   5|
-    //+-------+----+
+    val tagValue: DataFrame = fiveTags.toSeq.toDF("id", "name", "rule", "pid")
     val centerIndex: DataFrame = sortedCenters.indices.map(i => (sortedCenters(i)._1, i + 1)).toDF("predict", "rule")
     //  得到对应的数据信息的,得到的是预测值和tag_id之间的映射关系的
     val frame: DataFrame = centerIndex.join(tagValue, tagValue.col("rule") === centerIndex.col("rule"))
