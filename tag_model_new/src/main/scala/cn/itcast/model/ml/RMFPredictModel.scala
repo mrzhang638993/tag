@@ -3,8 +3,7 @@ package cn.itcast.model.ml
 import cn.itcast.model.Tag
 import cn.itcast.model.utils.BasicModel
 import org.apache.spark.ml.clustering.KMeansModel
-import org.apache.spark.ml.linalg
-import org.apache.spark.sql.{DataFrame, Dataset, Row}
+import org.apache.spark.sql.{DataFrame}
 
 import scala.collection.immutable
 
@@ -43,28 +42,22 @@ object RMFPredictModel  extends  BasicModel{
     val centerIndex: DataFrame = sortedCenters.indices.map(i => (sortedCenters(i)._1, i + 1)).toDF("predict", "index")
     // 下面预测的数据是错误的，需要重新编写代码进行预测操作实现？
     // 步骤一：针对于fivetags的数据需要和centerIndex进行关联，得到关联关系管理.需要处理和转换一下rule以及对应的关联关系
-    // val ruleTag: DataFrame = centerIndex.join(five, "rule")
-    // val perdict: DataFrame = ruleTag.select(predictStr, "tagsId")  得到预测值和tagsId之间的关联关系？
+    val tagRule: DataFrame = fiveTags.toSeq.toDF("id", "name", "rule", "pid")
+    val ruleTag: DataFrame = centerIndex.join(tagRule, tagRule.col("rule")===centerIndex.col("index"))
+    // 得到映射的数据信息，对应的是perdict以及对应的tagid的数据的
+    val perdict: DataFrame = ruleTag.select('id as "tagsId", 'predict as "predict")
     // 下面得到预测值和映射关系之间的关联map数据信息？
-    //val perMap = perdict.map(t => {
-    // val pre = t.getAs(predictStr).toString
-    //   val tag = t.getAs("tagsId").toString
-    //   (pre, tag)
-   // }).collect().toMap
+    val perMap = perdict.map(t => {
+     val pre = t.getAs("predict").toString
+       val tag = t.getAs("tagsId").toString
+       (pre, tag)
+    }).collect().toMap
     //  根据对应的预测数值获取到对应的tagId的数据信息？
-    //var predictUdf=udf((perdict:String)=>{
-    //  var tag=perMap(perdict)
-    // tag
-    //})
-    //val new_Tag = prodicted.select('memberId as "userId", predictUdf('predict) as "tagsId")
-    //  join的时候一个表的数据特别的小的话，会自动的进行join的map端的优化操作的。
-    //val frame1: DataFrame = prodicted.join(centerIndex, prodicted.col("predict") === centerIndex.col("predict"))
-    //  .select(prodicted.col("id"), centerIndex.col("index") as outFields.head)
-    //frame1
-    //val frame1: DataFrame = prodicted.join(centerIndex, prodicted.col("predict") === centerIndex.col("predict"))
-     // .select(prodicted.col("id"), centerIndex.col("index") as outFields.head)
-    //frame1.show()
-    //frame1
+    var predictUdf=udf((perdict:String)=>{
+      var tag=perMap(perdict)
+     tag
+    })
+
     null
   }
 }
