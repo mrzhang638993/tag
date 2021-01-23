@@ -72,9 +72,9 @@ object PSMModel  extends  BasicModel{
      //  计算psmScore指标
      // PSM Score = 优惠订单占比 + (平均优惠金额 / 平均每单应收) + 优惠金额占比
      val psmScore=('avgDiscountPercent+'avgDiscountAmount/'avgReceivableAmount+'discountAmountPercent) as "psmScore"
-    val stage4: DataFrame = stage3.select('id, psmScore)
+     val stage4: DataFrame = stage3.select('id, psmScore)
     // 肘部法则，确定k的值。
-    val  vectorAssembler=new VectorAssembler()
+     val vectorAssembler=new VectorAssembler()
       .setInputCols(Array("psmScore"))
       .setOutputCol("features")
       .setHandleInvalid("skip")
@@ -107,16 +107,24 @@ object PSMModel  extends  BasicModel{
       .setFeaturesCol("features")
     //  执行数据的训练操作，得到model对象
     val model: KMeansModel = kmeans.fit(vectorAssembler)
-    //  得到模型的预测信息
+    //  得到模型的预测信息.使用预测的数据来进行模型的训练操作
     val prodicted: DataFrame = model.transform(vectorAssembler)
     //  最终输出id,tag_id的数据信息？
     val sortedCenters: immutable.IndexedSeq[(Int, Double)] = model.clusterCenters.indices.map(i => (i, model.clusterCenters(i).toArray.sum)).sortBy(_._2).reverse
     //  得到序号的操作，对应的可以得到
     val tagValue: DataFrame = fiveTags.toSeq.toDF("id", "name", "rule", "pid")
+    //  执行字段编写重写操作
+    var  rule=when('rule===">=1",5)
+      .when('rule==="0.4~1",4)
+      .when('rule==="0.1-0.3",3)
+      .when('rule==="0",2)
+      .when('rule==="<0",1)
+      .as("rule")
+    val destFiveTag: DataFrame = tagValue.select('id, 'name, rule, 'pid)
     val centerIndex: DataFrame = sortedCenters.indices.map(i => (sortedCenters(i)._1, i + 1)).toDF("predict", "rule")
     //  得到对应的数据信息的,得到的是预测值和tag_id之间的映射关系的
-    val frame: DataFrame = centerIndex.join(tagValue, tagValue.col("rule") === centerIndex.col("rule"))
-      .select(tagValue.col("tag_id"), centerIndex.col("predict"))
+    val frame: DataFrame = centerIndex.join(destFiveTag, destFiveTag.col("rule") === centerIndex.col("rule"))
+      .select(destFiveTag.col("id").as("tag_id"), centerIndex.col("predict"))
     val ruleMap: Map[String, String] = frame.map(t => {
       val predict = t.getAs("predict").toString
       val tagsId = t.getAs("tag_id").toString
@@ -127,10 +135,9 @@ object PSMModel  extends  BasicModel{
       val tag = ruleMap(pre)
       tag
     })
-    val dest: DataFrame = prodicted.select('id, rule_UDF('predict).as("tag_id"))
-    // 下面需要将
-   dest
+    // 只能根据对应的预测值的数据进行归类操作实现的，其他的指标进行归类聚集操作存在问题的。
+    val dest: DataFrame = prodicted.select('id, rule_UDF('predict).as(outFields.head))
     // 对应的也是需要进行类的映射操作的。需要将对应的范围处理成为相关的范围数据信息的。
-    null
+    dest
   }
 }
