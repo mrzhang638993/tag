@@ -60,7 +60,7 @@ object RMFPredictModel  extends  BasicModel{
      tag
     })
     // 获取得到最终的计算的结果
-    val destResult: DataFrame = prodicted.select('id,  predictUdf('predict).as("tagId"))
+    val destResult: DataFrame = prodicted.select('id,  predictUdf('predict).as(outFields.head))
     destResult
   }
 }
