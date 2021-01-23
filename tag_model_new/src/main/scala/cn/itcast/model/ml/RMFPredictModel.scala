@@ -28,6 +28,7 @@ object RMFPredictModel  extends  BasicModel{
   override def process(df: DataFrame, fiveTags: Array[Tag], outFields: Array[String]): DataFrame = {
     // 判断逻辑存在问题，对应的fivetag的数据怎么使用的？需要进行关注和理解操作实现？
     import spark.implicits._
+    import  org.apache.spark.sql.functions._
     // 获取rmf数据
     val frame: DataFrame = RMFTrainModel.rmfScore(df)
     //  获取打分的数据结果
@@ -46,9 +47,10 @@ object RMFPredictModel  extends  BasicModel{
     val ruleTag: DataFrame = centerIndex.join(tagRule, tagRule.col("rule")===centerIndex.col("index"))
     // 得到映射的数据信息，对应的是perdict以及对应的tagid的数据的
     val perdict: DataFrame = ruleTag.select('id as "tagsId", 'predict as "predict")
+    perdict.show()
     // 下面得到预测值和映射关系之间的关联map数据信息？
     val perMap = perdict.map(t => {
-     val pre = t.getAs("predict").toString
+       val pre = t.getAs("predict").toString
        val tag = t.getAs("tagsId").toString
        (pre, tag)
     }).collect().toMap
@@ -57,7 +59,8 @@ object RMFPredictModel  extends  BasicModel{
       var tag=perMap(perdict)
      tag
     })
-
-    null
+    // 获取得到最终的计算的结果
+    val destResult: DataFrame = prodicted.select('id, 'r_score, 'f_score, 'm_score, predictUdf('predict).as("tagId"))
+    destResult
   }
 }
