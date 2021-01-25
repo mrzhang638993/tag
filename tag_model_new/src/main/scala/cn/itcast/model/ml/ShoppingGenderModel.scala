@@ -224,6 +224,11 @@ object ShoppingGenderModel extends  MultiSourceModel{
   /**
    * @param predictTestDF
    * @param predictTrainDF
+   ACC:简单来说就是识别正确的数量占总数量的比例。因为实际中一般不会用到TN所以这个一般不用.一般的指标使用中不会使用的。评价的是识别数据的准确度的。
+   AUC：代表的是分类的能力，将数据准确的划分到对应的类型中的能力的，auc的评价指标如下划分的：数据越大，对应的分类效果是越好的
+   AUC ＝ 1，代表完美分类器
+   0.5 < AUC < 1，优于随机分类器
+   0 < AUC < 0.5，差于随机分类器
    */
   def evaluateAUC(predictTrainDF: DataFrame,predictTestDF: DataFrame): Unit = {
     // 1. ACC
