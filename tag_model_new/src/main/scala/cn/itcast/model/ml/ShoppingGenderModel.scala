@@ -131,7 +131,16 @@ object ShoppingGenderModel extends  MultiSourceModel{
       .setOutputCol("features")
     val featuresDf: DataFrame = vectorAssembler.transform(result)
     //  对特征进行索引，后续的查找的过程会更加的高效的.提高决策树或随机森林等ML方法的分类效果
-    ////对特征进行索引,大于3个不同的值的特征被视为连续特征
+    ////对特征进行索引,大于3个不同的值的特征被视为连续特征，其中3的取值对应的是根据业务规则的个数来确定的
+    /**
+     * +------+----+
+     * |tagsId|rule|
+     * +------+----+
+     * |    57|   0|
+     * |    58|   1|
+     * |    59|  -1|
+     * +------+----+
+     */
     //    //VectorIndexer是对数据集特征向量中的类别(离散值)特征(index categorical features categorical features)进行编号。
     //    //它能够自动判断那些特征是离散值型的特征，并对他们进行编号，具体做法是通过设置一个maxCategories，
     //    //特征向量中某一个特征不重复取值个数小于maxCategories，则被重新编号为0～K（K<=maxCategories-1）。
