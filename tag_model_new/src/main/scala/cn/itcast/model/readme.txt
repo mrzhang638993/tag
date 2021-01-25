@@ -206,6 +206,13 @@ A错误 Logit回归的输出就是样本属于正类别的几率，可以计算�
 1.kmeans的无监督的聚类算法;
 2.决策树的监督聚类算法。
 
+决策树的深度如何决定的：
+val tree = new DecisionTreeClassifier()
+      .setFeaturesCol("features_index")
+      .setPredictionCol("predict") //Gini不纯度
+      .setMaxDepth(5) //树的最大深度
+      .setMaxBins(5) //离散化连续特征的最大划分数
+
 
 
 
