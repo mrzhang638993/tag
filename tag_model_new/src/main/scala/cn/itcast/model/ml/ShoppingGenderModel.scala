@@ -202,6 +202,15 @@ object ShoppingGenderModel extends  MultiSourceModel{
     val destResult = union_predict.select('id, male,female)
       .groupBy('id)
       .agg(totalCountSex , maleSum , femaleSum  )
+    /**
+     * +------+----+
+     * |tagsId|rule|
+     * +------+----+
+     * |    57|   0|
+     * |    58|   1|
+     * |    59|  -1|
+     * +------+----+
+    */
     val five_Map = fiveTags.toSeq.toDF("tagsId", "name", "rule", "pid").map(row => {
       (row.getAs("rule").toString, row.getAs("tagsId").toString)
     }).collect().toMap
