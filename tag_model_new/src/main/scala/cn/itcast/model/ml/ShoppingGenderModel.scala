@@ -35,9 +35,8 @@ object ShoppingGenderModel extends  MultiSourceModel{
       //  获取到两个数据源，一个是goods表的数据，一个是orders的数据的。这个只能是原始的数据的。
       //  最终训练得到的数据应该是对于用户的数据进行标注的，所以，对应的用户的数据需要加入到这里面的。
       val  goodsSource=df(0)
+      //  订单中是存在用户信息的？
       val  orderSource=df(1)
-      // 增加定义用户的数据信息，来决定对应的用户信息，这里面假设用户信息是存在的。
-      val  userSource=df(2)
       //  通过模拟的时候生成对应的label数据信息
      //   女生对应的数据是1，男生对应的数据是0.通过这些分析出来的数据比较有代表的可以预测出来性别信息。
      // 需要将原始的数据进行数字化的处理操作的。
@@ -109,7 +108,7 @@ object ShoppingGenderModel extends  MultiSourceModel{
         .otherwise(0)
         .alias("gender")
     //  处理数据，生成label信息
-    val result: DataFrame = goodsSource.select(label, 'ogcolor as "color", 'cordersn as "ordersn", 'producttype as "producttype")
+    val result: DataFrame = goodsSource.select(label, color, 'cordersn as "ordersn", productType)
       .join(orderSource, "ordersn")
       .select('memberid as "id", 'color, 'producttype,'gender)
     //  决策树对应的是有监督的学习，所有需要增加标签信息，可以和后面预测的数据进行比对的。
@@ -132,7 +131,16 @@ object ShoppingGenderModel extends  MultiSourceModel{
       .setOutputCol("features")
     val featuresDf: DataFrame = vectorAssembler.transform(result)
     //  对特征进行索引，后续的查找的过程会更加的高效的.提高决策树或随机森林等ML方法的分类效果
-    ////对特征进行索引,大于3个不同的值的特征被视为连续特征
+    ////对特征进行索引,大于3个不同的值的特征被视为连续特征，其中3的取值对应的是根据业务规则的个数来确定的
+    /**
+     * +------+----+
+     * |tagsId|rule|
+     * +------+----+
+     * |    57|   0|
+     * |    58|   1|
+     * |    59|  -1|
+     * +------+----+
+     */
     //    //VectorIndexer是对数据集特征向量中的类别(离散值)特征(index categorical features categorical features)进行编号。
     //    //它能够自动判断那些特征是离散值型的特征，并对他们进行编号，具体做法是通过设置一个maxCategories，
     //    //特征向量中某一个特征不重复取值个数小于maxCategories，则被重新编号为0～K（K<=maxCategories-1）。
@@ -187,16 +195,26 @@ object ShoppingGenderModel extends  MultiSourceModel{
     val union_predict = predictTestDF.union(predictTestDF)
     var male=when(col("prediction")===0,1).otherwise(0).as("male")
     var female= when(col("prediction")===1,1).otherwise(0).as("female")
-    var totalCountSex=count('userId) cast  DoubleType as "total"
+    var totalCountSex=count('id) cast  DoubleType as "total"
     var maleSum=sum('male) cast DoubleType as "maleSum"
     var femaleSum=sum('female) cast DoubleType as "femaleSum"
-    val destResult = union_predict.select('userId, male,female)
-      .groupBy('userId)
+    //  分组进行统计，获取对应的决策树下面男性的权重以及女性的权重，根据权重的占比划分为对应的性别的。
+    val destResult = union_predict.select('id, male,female)
+      .groupBy('id)
       .agg(totalCountSex , maleSum , femaleSum  )
+    /**
+     * +------+----+
+     * |tagsId|rule|
+     * +------+----+
+     * |    57|   0|
+     * |    58|   1|
+     * |    59|  -1|
+     * +------+----+
+    */
     val five_Map = fiveTags.toSeq.toDF("tagsId", "name", "rule", "pid").map(row => {
       (row.getAs("rule").toString, row.getAs("tagsId").toString)
     }).collect().toMap
-    //预测规则B:计算每个用户近半年内所有订单中的男性商品超过60%则认定该用户为男，或近半年内所有订单中的女性品超过60%则认定该用户为女
+    //预测规则B:计算每个用户近半年内所有订单中的男性商品超过80%则认定该用户为男，或近半年内所有订单中的女性品超过80%则认定该用户为女
     var getGender=udf((total:Double,mSum:Double,fsum:Double)=>{
       val mRatio = mSum/total
       val fRatio = fsum/total
@@ -208,14 +226,18 @@ object ShoppingGenderModel extends  MultiSourceModel{
       }
       five_Map("1")
     })
-    val new_Tag = destResult.select('userID, getGender('total, 'maleSum, 'femaleSum) as "tagsId")
+    val new_Tag = destResult.select('id, getGender('total, 'maleSum, 'femaleSum) as "tagsId")
     new_Tag
-    null;
   }
 
   /**
    * @param predictTestDF
    * @param predictTrainDF
+   ACC:简单来说就是识别正确的数量占总数量的比例。因为实际中一般不会用到TN所以这个一般不用.一般的指标使用中不会使用的。评价的是识别数据的准确度的。
+   AUC：代表的是分类的能力，将数据准确的划分到对应的类型中的能力的，auc的评价指标如下划分的：数据越大，对应的分类效果是越好的
+   AUC ＝ 1，代表完美分类器
+   0.5 < AUC < 1，优于随机分类器
+   0 < AUC < 0.5，差于随机分类器
    */
   def evaluateAUC(predictTrainDF: DataFrame,predictTestDF: DataFrame): Unit = {
     // 1. ACC
