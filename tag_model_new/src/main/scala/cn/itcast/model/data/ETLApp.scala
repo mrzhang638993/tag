@@ -22,7 +22,8 @@ object ETLApp {
     //  执行数据的过滤操作和实现。得到对应的需要过滤完成的数据信息。
     val clickDataStream:DataStream[ClickDataLog]=transformData(value)
     val destCleanValue:DataStream[ClickDataLog]=clickDataStream.filter(it->it.valid===1)
-    // 执行数据的写入操作。将清洗之后的数据写入到对应的hdfs文件中进行管理操作的。
+    // 执行数据的写入操作。将清洗之后的数据写入到对应的hdfs文件中进行管理操作的。数据写入到对应的hdfs文件中进行操作
+    destCleanValue.write().mode(SaveMode.Overwrite).save("")
   }
   
   
