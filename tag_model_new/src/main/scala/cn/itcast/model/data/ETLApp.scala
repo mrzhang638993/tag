@@ -23,7 +23,7 @@ object ETLApp {
     val clickDataStream:DataStream[ClickDataLog]=transformData(value)
     val destCleanValue:DataStream[ClickDataLog]=clickDataStream.filter(it->it.valid===1)
     // 执行数据的写入操作。将清洗之后的数据写入到对应的hdfs文件中进行管理操作的。数据写入到对应的hdfs文件中进行操作
-    destCleanValue.write().mode(SaveMode.Overwrite).save("")
+    destCleanValue.write().mode(SaveMode.Overwrite).option("compression", "snappy").parquet("")
   }
   
   
