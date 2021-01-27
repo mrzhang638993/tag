@@ -12,6 +12,7 @@
         <module>tag-model</module>
         <module>tag-web</module>
         <module>tag_model_new</module>
+        <module>bigdata_flume</module>
     </modules>
 
     <properties>
