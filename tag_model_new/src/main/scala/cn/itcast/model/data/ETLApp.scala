@@ -35,7 +35,7 @@ object ETLApp {
   /**
   *  进行数据的转换操作，得到对应的数据的bean对象的对象信息。同时将对应的数据信息增加valid的数据标签信息。
   */
-  def transformData(originData:Dataset[String]):DataStream[ClickDataLog]:Unit={
+  def transformData(originData:Dataset[String]):DataStream[ClickDataLog]={
      //  处理对应的数据信息，完成数据信息的转换操作和实现
   }
   
