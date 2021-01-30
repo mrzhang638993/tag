@@ -43,6 +43,7 @@ object ETLApp {
     })
     // 缺少了在页面停留的时长信息的？需要增加页面的停留时长的信息的。
     //分组,对于组内的rdd执行排序操作，增加增加uuid的信息？缺少了schema的信息
+    //  groupby的数据倾斜操作？
     val uuidSessionBean: RDD[PageViewsBeanCase1] = meansRdd.groupBy(it => it.uid).flatMap(it => {
       val values: Iterable[TouchHitLog] = it._2
       //  list的信息。进行排序操作和实现.根据请求的顺序降序排列操作

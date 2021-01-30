@@ -92,7 +92,7 @@ object ETLApp {
             //如果只由一条记录
             if (sortWeblogBeanList.size == 1) {
               val pageViewsBeanCase = PageViewsBeanCase(sessionid, bean.remote_addr, bean.time_local,
-                bean.request, step, page_staylong,
+                bean.request, step, page_staylong.toString,
                 bean.http_referer, bean.http_user_agent, bean.body_bytes_sent, bean.status, bean.guid)
               //之前输出，现在则需要保存起来最后一起输出
               pageViewBeanCaseList += pageViewsBeanCase
@@ -115,7 +115,7 @@ object ETLApp {
               if (timeDiff <= 30 * 60 * 1000) {
                 //属于同个session，你们俩共用一个sessionid,输出上一条
                 val pageViewsBeanCase = PageViewsBeanCase(sessionid, lastBean.remote_addr, lastBean.time_local, lastBean.request,
-                  step, timeDiff, lastBean.http_referer, lastBean.http_user_agent, lastBean.body_bytes_sent,
+                  step, timeDiff.toString, lastBean.http_referer, lastBean.http_user_agent, lastBean.body_bytes_sent,
                   lastBean.status, lastBean.guid
                 )
                 //添加到集合中
@@ -127,7 +127,7 @@ object ETLApp {
                 //不属于一个sessionid,如何处理？不管是否属于同个会话，我们输出的都是上一条记录
                 //属于同个session，你们俩共用一个sessionid,输出上一条
                 val pageViewsBeanCase = PageViewsBeanCase(sessionid, lastBean.remote_addr, lastBean.time_local, lastBean.request,
-                  step, page_staylong, lastBean.http_referer,
+                  step, page_staylong.toString, lastBean.http_referer,
                   lastBean.http_user_agent, lastBean.body_bytes_sent,
                   lastBean.status, lastBean.guid
                 )
@@ -143,7 +143,7 @@ object ETLApp {
               if (num == sortWeblogBeanList.size - 1) {
 
                 val pageViewsBeanCase = PageViewsBeanCase(sessionid, bean.remote_addr, bean.time_local,
-                  bean.request, step, page_staylong,
+                  bean.request, step, page_staylong.toString,
                   bean.http_referer, bean.http_user_agent, bean.body_bytes_sent, bean.status, bean.guid)
                 //之前输出，现在则需要保存起来最后一起输出
                 pageViewBeanCaseList += pageViewsBeanCase
