@@ -214,6 +214,19 @@ val tree = new DecisionTreeClassifier()
       .setMaxBins(5) //离散化连续特征的最大划分数
 
 
+spark实际的操作过程中，主要操作的对象是rdd的数据结构以及对应的dataFrame和相关的dataset的数据结构的。
+所有的操作主要的是使用的是rdd的api，以及对应的dataframe的api的数据以及相关的dataFrame的api的数据的，所以，实际的操作的过程中
+还是使用spark对应的这三种的数据结构进行操作管理和实现的。
+spark的输入和输出对应的只能是rdd,dataset以及dataframe的数据结构的。
+
+
+###求解的逻辑操作信息？
+需要主要以下pageView的数据获取到对应的staylong的信息，获取页面的停留时长的信息的。
+
+
+
+
+
 
 
 

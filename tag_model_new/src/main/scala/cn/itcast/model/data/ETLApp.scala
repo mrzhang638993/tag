@@ -41,13 +41,14 @@ object ETLApp {
         case false => true
       }
     })
+    // 缺少了在页面停留的时长信息的？需要增加页面的停留时长的信息的。
     //分组,对于组内的rdd执行排序操作，增加增加uuid的信息？缺少了schema的信息
-    val uuidSessionBean: RDD[PageViewsBeanCase] = meansRdd.groupBy(it => it.uid).flatMap(it => {
+    val uuidSessionBean: RDD[PageViewsBeanCase1] = meansRdd.groupBy(it => it.uid).flatMap(it => {
       val values: Iterable[TouchHitLog] = it._2
       //  list的信息。进行排序操作和实现.根据请求的顺序降序排列操作
       val list: List[TouchHitLog] = values.toList.sortBy(_.requestTime)
       //  计算每一个list中的数据，然后执行数据的更新的操作和实现管理
-      val value1: List[PageViewsBeanCase] = addUuidInfo(list)
+      val value1: List[PageViewsBeanCase1] = addUuidInfo(list)
       value1
     }).filter(it=>it!=null)
     // pageview数据模型的数据保存操作
@@ -58,9 +59,9 @@ object ETLApp {
     //下面是vists模型的编程操作和实现
     if(uuidSessionBean!=null){
       // 根据session的数据进行判断，获取session中的第一个步骤和最后的一个步骤
-      val visitModel: RDD[VisitBeanCase] = uuidSessionBean.groupBy(it => it.session).map(it => {
-        val values: Iterable[PageViewsBeanCase] = it._2
-        val cases: List[PageViewsBeanCase] = values.toList.sortBy(it => it.requestTime)
+      val visitModel: RDD[VisitBeanCase1] = uuidSessionBean.groupBy(it => it.session).map(it => {
+        val values: Iterable[PageViewsBeanCase1] = it._2
+        val cases: List[PageViewsBeanCase1] = values.toList.sortBy(it => it.requestTime)
         //  获取排序之后的最小的时间对应的操作，以及排序之后最大的时间对应的排序的操作
         getVisitModelBean(cases)
       })
@@ -99,10 +100,10 @@ object ETLApp {
    * referal			: String,
    * pageVisits		: Int
    * */
-  def  getVisitModelBean(cases: List[PageViewsBeanCase]): VisitBeanCase ={
-    val head: PageViewsBeanCase = cases.head
-    val last: PageViewsBeanCase = cases.last
-    VisitBeanCase(head.uid,head.session,head.ip,
+  def  getVisitModelBean(cases: List[PageViewsBeanCase1]): VisitBeanCase1 ={
+    val head: PageViewsBeanCase1 = cases.head
+    val last: PageViewsBeanCase1 = cases.last
+    VisitBeanCase1(head.uid,head.session,head.ip,
       head.requestTime,last.requestTime,head.url,
       last.url,head.requestUrl,cases.size)
   }
@@ -110,33 +111,33 @@ object ETLApp {
    * 获取得到对应的bean信息的内容和实现操作
    * 给对应的数据记录增加uuid信息。
    * */
-  def addUuidInfo(list: List[TouchHitLog]):List[PageViewsBeanCase]={
+  def addUuidInfo(list: List[TouchHitLog]):List[PageViewsBeanCase1]={
     //前后之间的时间间隔超过了30分钟，对应的需要重新生成对应的uuid信息。任意的两个之间的时间间隔超过了30分钟，重新生成一个uuid信息
-    val list1 = new ListBuffer[PageViewsBeanCase]()
+    val list1 = new ListBuffer[PageViewsBeanCase1]()
     var uuid: String = UUID.randomUUID().toString
     var currentLog:TouchHitLog=null
     //  处理
     val size: Int = list.size
     if(size==0){
       val log: TouchHitLog = list(0)
-      val beanCase: PageViewsBeanCase = createPageViewsBeanCase(uuid, log)
+      val beanCase: PageViewsBeanCase1 = createPageViewsBeanCase(uuid, log)
       list1 += beanCase
     }else{
       for(num<- 0 until list.size-1) {
         val log: TouchHitLog = list(num)
         if(currentLog==null){
           currentLog=log
-          val beanCase: PageViewsBeanCase = createPageViewsBeanCase(uuid, log)
+          val beanCase: PageViewsBeanCase1 = createPageViewsBeanCase(uuid, log)
           list1 += beanCase
         }else{
           // 相邻的两个元素的时间间隔超过了30分钟的话，对应的执行操作处理的
           val timeDiff: Long = getTimeDiff(currentLog, log)
           if(timeDiff>=30*60*1000){
             uuid=UUID.randomUUID().toString
-            val beanCase: PageViewsBeanCase = createPageViewsBeanCase(uuid, log)
+            val beanCase: PageViewsBeanCase1 = createPageViewsBeanCase(uuid, log)
             list1 += beanCase
           }else{
-            val beanCase: PageViewsBeanCase = createPageViewsBeanCase(uuid, log)
+            val beanCase: PageViewsBeanCase1 = createPageViewsBeanCase(uuid, log)
             list1 += beanCase
           }
           currentLog=log
@@ -167,7 +168,7 @@ object ETLApp {
    * 处理对应的weblogBean的注册信息
    * */
   def createPageViewsBeanCase(uuid:String,log: TouchHitLog)={
-    val beanCase: PageViewsBeanCase = PageViewsBeanCase(
+    val beanCase: PageViewsBeanCase1 = PageViewsBeanCase1(
       uuid, log.uid, log.ip,
       log.info, log.requestTime, log.method,
       log.url, log.protocol, log.responseCode,
@@ -210,7 +211,7 @@ case class  TouchHitLog(
 /**
  * 获取对应的case-class的信息操作
  * */
-case class PageViewsBeanCase (session: String,
+case class PageViewsBeanCase1 (session: String,
                              uid:String,
                              ip:String,
                              info:String,
@@ -226,7 +227,7 @@ case class PageViewsBeanCase (session: String,
 /**
  * 获取visit模型对应的数据信息
  * */
-case class VisitBeanCase(
+case class VisitBeanCase1(
                           uid      :String,
                           session			: String,
                           remote_addr	: String,
