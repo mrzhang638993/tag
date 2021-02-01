@@ -67,11 +67,14 @@ object PageViewService {
         )
       }
     )
+    //  不存在对应的writemode操作的,需要进行关注操作
     pageviewRdd.saveAsTextFile("/pageviewrddtxt")
-
   }
 
 
+  /**
+   * 开始修复rdd数据执行修复操作。
+   * */
   //修复我们rdd边界处的数据
   def repairBoundarySession(uidTimeSessionStepLongRdd: RDD[(WebLogBean, String, Int, Long)],
                             questionBroadCast: Broadcast[mutable.HashMap[String, String]]) = {
@@ -83,14 +86,20 @@ object PageViewService {
         var orginList = iter.toList
         val firstLine: String = questionMap.getOrElse(index + "&first", "")
         val lastLine: String = questionMap.getOrElse(index + "&last", "")
+        //  对应的第一行的数据需要进行修复操作
         if (lastLine != "") {
           //当前这个分区最后一条数据他的停留时长需要修改
           val buffer: mutable.Buffer[(WebLogBean, String, Int, Long)] = orginList.toBuffer
           val lastTuple: (WebLogBean, String, Int, Long) = buffer.remove(buffer.size - 1) //只修改停留时长
+          //  修复最后一行的stayLong信息的。步长信息不需要进行修改吗？
           buffer += ((lastTuple._1, lastTuple._2, lastTuple._3, lastLine.toLong))
           orginList = buffer.toList
         }
 
+        /**
+         * 对应的表示的是第一行的sessionid需要进行修改的。对应的后续的所有的和第一行的sessionId数据相等的全部都是需要进行修改的。
+         * firstLine中存储了对应的初始的步长的信息的。默认的是对应的是1的。在correctMap中需要对应的进行修改操作的。
+         * */
         if (firstLine != "") {
           //分区第一条数据有问题，则需要修改：按照错误的sessionid找到所有需要修改的数据，改正sessionid和step
           val firstArr: Array[String] = firstLine.split("&")
@@ -98,6 +107,8 @@ object PageViewService {
             t => {
               if (t._2.equals(firstArr(2))) {
                 //错误的sessionid,修改为正确的sessionid和步长
+                //等于初始的步长加上当前的步长信息的。
+                //  sessionId,step,stayLong信息,保存这些数据即可操作的。
                 (t._1, firstArr(0), firstArr(1).toInt + t._3.toInt, t._4)
               } else {
                 t
@@ -113,6 +124,9 @@ object PageViewService {
 
   }
 
+  /**
+   * 得到修正后的分区首尾的map信息。
+   * */
   //根据首尾数据找到有问题边界数据，以及修改的正确数据
   def processBoundaryMap(map: mutable.HashMap[String, String]) = {
     //定义一个map接收有问题分区需要修改的正确数据：key:index+"&first/last", value需要修改的正确数据
@@ -129,15 +143,16 @@ object PageViewService {
       val numLastArr: Array[String] = numLastMsg.split("&")
       val lastPartLastArr: Array[String] = lastPartLastMsg.split("&")
       val numFirstArr: Array[String] = numFirstMsg.split("&")
-      //判断是否同个用户
+      //判断是否同个用户,对应的是相同的用户信息
       if (lastPartLastArr(0).equals(numFirstArr(0))) {
         //判断时间差
         val timediff = DateUtil.getTimeDiff(lastPartLastArr(1), numFirstArr(1))
+        //  同样的会话之中的。
         if (timediff < 30 * 60 * 1000) {
           //说明当前分区第一条数据与上个分区最后一条属于同个会话
           //上个分区记录需要修改的正确的停留时长数据
+          //修改上一个分区的last信息进行操作管理实现？修改上一个时间中的stayLong信息的。
           correctMap.put((num - 1) + "&last", timediff.toString)
-          lastPartLastArr.foreach(println(_))
           //当前分区的第一条数据（有可能是多条数据严谨来说应该是当前分区的第一个session的数据）需要修改的数据
           //sessionid:与上个分区最后一条数据的sessionid保持一致,step:应该是上个分区最后一条记录的step+1
           //  #  初始的记录，currentTuple._1对应的是uid&time的信息
@@ -145,15 +160,18 @@ object PageViewService {
           //# 尾部数据的记录操作的
           //headTailList.add((index + "&last", currentTuple._1 + "&" + sessionid + "&" + step + "&" + list.size))
           // 最多存在5个元素的数据需要进行处理操作的，不会存在超过5个以上的数据需要进行处理的。
+          //  需要参照上一个分区的信息来修改本分区的信息的。至于上一个分区的步长信息将在后面进行数据的整体的修复操作的
           if (lastPartLastArr.size > 5) {
             //正确的sessionid+正确的step+错误的sessionid
             // 需要修改一下前面的last的数据信息的。修改的是上一个分区最尾部的数据的数据信息的
+            // 保存的数据是step$stay_long$uid
             correctMap.put(num + "&first", lastPartLastArr(lastPartLastArr.size - 2) + "&"
               + lastPartLastArr(lastPartLastArr.size - 1) + "&" + numFirstArr(2))
           } else {
             correctMap.put(num + "&first", lastPartLastArr(2) + "&" + lastPartLastArr(3) + "&" + numFirstArr(2))
           }
           //判断当前整个分区是否属于同个会话，属于同个会话则更新map中当前分区对应的最后一条数据的sessionid和ste数据
+          //  分区内第一个元素的sessionId和分区内的最后一个元素的sessionId相同的话，需要整个分区的sessionId进行修改操作。
           if (numFirstArr(2).equals(numLastArr(2))) {
             //说明是同个会话，存在了会话穿透多个分区的现象
             //更新最后一条数据的step和sessionid信息
@@ -163,14 +181,12 @@ object PageViewService {
               map.put(num + "&last", numLastMsg + "&" + lastPartLastArr(lastPartLastArr.size - 2) + "&" +
                 (lastPartLastArr(lastPartLastArr.size - 1).toInt + numLastArr(4).toInt))
             } else {
-              //uid+time+sessionid+step+partition.size(分区数量)+sessionid+step
+              //uid+time+sessionid+step+partition.size(分区数量)
               map.put(num + "&last", numLastMsg + "&" + lastPartLastArr(2) + "&" + (lastPartLastArr(3).toInt + numLastArr(4).toInt))
             }
           }
         }
       }
-
-
     }
     correctMap
   }
@@ -194,10 +210,11 @@ object PageViewService {
         if(list.size==0){
            null
         }
+
         for (num <- 0 until (list.size)) {
           //取出当前遍历的数据
           val currentTuple: (String, WebLogBean) = list(num)
-          //累加器收集第一条数据
+           //累加器收集第一条数据
           //把数据装入累加器中:key:分区编号+"&"+first/last,value:uid+time,sessionid
           //判断只有一条数据的情况
           if (list.size == 1) {
